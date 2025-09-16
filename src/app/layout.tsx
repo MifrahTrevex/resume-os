@@ -4,8 +4,8 @@ import '../styles/crt.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Retro Okoth Desktop',
-  description: 'Dickens Okoth\'s Interactive CV',
+  title: 'Dickens Okoth Otieno\'s Desktop CV',
+  description: 'Dickens Okoth Otieno\'s Interactive CV',
 };
 
 export default function RootLayout({

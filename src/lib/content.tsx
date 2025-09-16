@@ -3,68 +3,48 @@ import { FileText, Briefcase, Code, User, Terminal as TerminalIcon, Mail } from 
 import React from 'react';
 
 export const personalInfo = {
-  name: "Dickens Okoth",
-  title: "Full Stack Developer",
+  name: "Dickens Okoth Otieno",
+  title: "IT Professional",
   contact: {
-    email: "dickens.okoth@example.com",
-    linkedin: "https://linkedin.com/in/dickens-okoth",
-    github: "https://github.com/dickens-okoth",
+    email: "dickenokoth@gmail.com",
+    linkedin: "https://linkedin.com/in/dickens-okoth", // Placeholder, not in CV
+    github: "https://github.com/dickens-okoth", // Placeholder, not in CV
+    phone: "(+254) 792475055",
   },
 };
 
 export const aboutContent = `
-Hello! I'm Dickens Okoth, a passionate Full Stack Developer with a knack for creating dynamic and user-friendly web applications. With a background in both front-end and back-end technologies, I enjoy bringing ideas to life, from concept to deployment.
-
-This interactive CV is a showcase of my skills in React, Next.js, and creating engaging user experiences. Feel free to explore my work and get in touch!
+I am a motivated and adaptable IT professional with a strong passion for technology and problem-solving. I take pride in my ability to learn quickly, work well under pressure, and collaborate effectively with teams to deliver reliable solutions. My hands-on experience in network troubleshooting, system maintenance, and user support has helped me develop a practical approach to solving complex challenges. I am committed to continuous learning and growth, with the goal of applying innovative IT solutions that drive efficiency and support organizational success.
 `;
 
 export const resumeContent = {
   experience: [
     {
-      role: "Senior Software Engineer",
-      company: "Innovate Solutions Inc.",
-      period: "Jan 2021 - Present",
-      description: "Leading development of a new SaaS platform using React, Node.js, and TypeScript. Mentoring junior developers and improving code quality across the team."
+      role: "ICT Support Intern",
+      company: "Ministry Of Investments Trade and Industry",
+      period: "26/05/2025 - 25/08/2025",
+      description: "Assisted in troubleshooting and resolving hardware and software issues on computers, printers, and other office equipment. Helped configure and maintain network connections and IP settings for office devices. Installed and updated operating systems (Windows, Linux) and essential software such as Microsoft Office. Assisted in setting up new user accounts and workstations. Supported the ICT team in monitoring and maintaining local area network (LAN) performance. Maintained records of technical issues, troubleshooting steps, and resolutions in daily logbooks."
     },
     {
-      role: "Full Stack Developer",
-      company: "Tech Advancers",
-      period: "Jun 2018 - Dec 2020",
-      description: "Developed and maintained features for a large-scale e-commerce website. Worked with a modern stack including Next.js, GraphQL, and PostgreSQL."
+      role: "Cyber Cafe Attendant",
+      company: "Jofrah Stores",
+      period: "2022 - 2023",
+      description: "Delivered technical support to customers, assisting with computer access, internet use, and troubleshooting software and hardware issues. Maintained system performance by performing regular updates, scans, and security checks to prevent malware and unauthorized downloads. Assisted clients with printing, scanning, and document formatting, ensuring high-quality service and customer satisfaction. Configured and monitored network connections to ensure consistent connectivity and minimized downtime. Promoted safe computing practices by educating customers on privacy and responsible internet use. Demonstrated adaptability by efficiently handling multiple tasks and customer requests in a fast-paced environment."
     },
   ],
   education: [
-    {
-      degree: "B.Sc. in Computer Science",
-      institution: "University of Technology",
-      period: "2014 - 2018",
-    }
+    // Education details were not in the provided CV.
   ],
   skills: [
-    "JavaScript/TypeScript", "React", "Next.js", "Node.js", "Python",
-    "GraphQL", "REST APIs", "PostgreSQL", "MongoDB", "Docker", "Firebase", "Google Cloud"
+    "Technical Support", "Troubleshooting Hardware & Software", "Computer hardware and Software Components",
+    "Basic Networking configuration and maintenance", "Windows and Linux Operating Systems",
+    "Productivity tools( Microsoft Office Suite and Google Workspace", "Cybersecurity Fundamentals",
+    "Communication and teamwork", "Problem solving and Critical thinking"
   ]
 };
 
 export const projectsContent = [
-  {
-    title: "Project Alpha",
-    description: "A real-time collaborative code editor built with WebSockets and React. Features syntax highlighting for multiple languages and shared editing sessions.",
-    tech: ["React", "Node.js", "WebSocket", "Monaco Editor"],
-    link: "https://github.com/dickens-okoth/project-alpha"
-  },
-  {
-    title: "DataViz Dashboard",
-    description: "An analytics dashboard for visualizing complex datasets using D3.js and React. Provides interactive charts and data filtering capabilities.",
-    tech: ["React", "D3.js", "Express"],
-    link: "https://github.com/dickens-okoth/dataviz-dashboard"
-  },
-  {
-    title: "E-Commerce Platform",
-    description: "A full-featured online store with product management, shopping cart, and payment integration using Stripe.",
-    tech: ["Next.js", "Stripe", "PostgreSQL", "GraphQL"],
-    link: "https://github.com/dickens-okoth/ecommerce-platform"
-  },
+    // Project details were not in the provided CV. I will leave this section blank.
 ];
 
 
@@ -76,26 +56,38 @@ const AboutContent = () => (
 );
 
 const ResumeContent = () => (
-    <div className="p-4">
-        <h2 className="text-xl font-bold font-headline mb-4 text-accent">Resume</h2>
-        <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
-        {resumeContent.experience.map((job, i) => (
-            <div key={i} className="mb-4">
-                <h4 className="font-bold">{job.role}</h4>
-                <p className="text-sm text-muted-foreground">{job.company} | {job.period}</p>
-                <p className="mt-1">{job.description}</p>
+    <div className="p-4 space-y-6">
+        <div>
+            <h2 className="text-xl font-bold font-headline mb-4 text-accent">Resume</h2>
+            <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
+            <div className="space-y-4">
+                {resumeContent.experience.map((job, i) => (
+                    <div key={i}>
+                        <h4 className="font-bold">{job.role}</h4>
+                        <p className="text-sm text-muted-foreground">{job.company} | {job.period}</p>
+                        <p className="mt-1 whitespace-pre-wrap">{job.description}</p>
+                    </div>
+                ))}
             </div>
-        ))}
-        <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Education</h3>
-        {resumeContent.education.map((edu, i) => (
-            <div key={i} className="mb-4">
-                <h4 className="font-bold">{edu.degree}</h4>
-                <p className="text-sm text-muted-foreground">{edu.institution} | {edu.period}</p>
+        </div>
+        
+        {resumeContent.education.length > 0 && (
+            <div>
+                <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Education</h3>
+                {resumeContent.education.map((edu, i) => (
+                    <div key={i} className="mb-4">
+                        <h4 className="font-bold">{edu.degree}</h4>
+                        <p className="text-sm text-muted-foreground">{edu.institution} | {edu.period}</p>
+                    </div>
+                ))}
             </div>
-        ))}
-        <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Skills</h3>
-        <div className="flex flex-wrap gap-2">
-            {resumeContent.skills.map(skill => <span key={skill} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{skill}</span>)}
+        )}
+
+        <div>
+            <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Skills</h3>
+            <div className="flex flex-wrap gap-2">
+                {resumeContent.skills.map(skill => <span key={skill} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{skill}</span>)}
+            </div>
         </div>
     </div>
 );
@@ -103,18 +95,22 @@ const ResumeContent = () => (
 const ProjectsContent = () => (
     <div className="p-4">
         <h2 className="text-xl font-bold font-headline mb-4 text-accent">Projects</h2>
-        <div className="space-y-4">
-        {projectsContent.map((proj, i) => (
-             <div key={i}>
-                <h3 className="font-bold">{proj.title}</h3>
-                <p className="mt-1 mb-2">{proj.description}</p>
-                <div className="flex items-center gap-2 flex-wrap">
-                    {proj.tech.map(t => <span key={t} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{t}</span>)}
-                    <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs">View on GitHub &rarr;</a>
+        {projectsContent.length > 0 ? (
+            <div className="space-y-4">
+            {projectsContent.map((proj, i) => (
+                 <div key={i}>
+                    <h3 className="font-bold">{proj.title}</h3>
+                    <p className="mt-1 mb-2">{proj.description}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {proj.tech.map(t => <span key={t} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{t}</span>)}
+                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs">View on GitHub &rarr;</a>
+                    </div>
                 </div>
+            ))}
             </div>
-        ))}
-        </div>
+        ) : (
+            <p>No projects listed in the provided CV.</p>
+        )}
     </div>
 );
 

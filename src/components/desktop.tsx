@@ -18,8 +18,8 @@ type TerminalLine = {
 
 function Terminal({ openApp }: { openApp: (appId: 'about' | 'resume' | 'projects' | 'contact') => void }) {
   const [lines, setLines] = useState<TerminalLine[]>([
-    { type: 'system', content: `Retro Okoth Desktop v1.0` },
-    { type: 'system', content: `Welcome, ${personalInfo.name}. Type 'help' for a list of commands.` },
+    { type: 'system', content: `Dickens Okoth Otieno's Desktop v1.0` },
+    { type: 'system', content: `Welcome. Type 'help' for a list of commands.` },
   ]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
