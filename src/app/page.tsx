@@ -3,9 +3,11 @@
 
 import Desktop from '@/components/desktop';
 import { useAuth } from '@/context/auth-context';
+import { useState } from 'react';
 
 export default function Home() {
   const { loading } = useAuth();
+  const [powerState, setPowerState] = useState<'running' | 'confirming' | 'off'>('running');
 
   if (loading) {
       return (
@@ -14,13 +16,28 @@ export default function Home() {
           </div>
       )
   }
+  
+  const handlePowerButtonClick = () => {
+    if (powerState === 'running') {
+      setPowerState('confirming');
+    }
+  }
 
   return (
     <main className="h-screen w-screen overflow-hidden">
-        <div className="monitor">
+        <div className="monitor" data-state={powerState}>
             <div className="monitor-screen">
                 <div className="crt-overlay"></div>
-                <Desktop />
+                <Desktop powerState={powerState} setPowerState={setPowerState} />
+            </div>
+            <div className="monitor-brand">
+                <span>Fragment OS</span>
+                <button 
+                  className="power-button" 
+                  data-state={powerState}
+                  onClick={handlePowerButtonClick}
+                  aria-label="Toggle Power"
+                />
             </div>
         </div>
     </main>

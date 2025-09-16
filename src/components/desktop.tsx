@@ -702,8 +702,13 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
   );
 }
 
+interface DesktopProps {
+    powerState: 'running' | 'confirming' | 'off';
+    setPowerState: (state: 'running' | 'confirming' | 'shutting_down' | 'restarting' | 'off') => void;
+}
 
-export default function Desktop() {
+
+export default function Desktop({ powerState, setPowerState }: DesktopProps) {
   const { isAuthenticated, logout } = useAuth();
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
@@ -711,7 +716,7 @@ export default function Desktop() {
   const zIndexCounter = useRef(10);
   const [terminalInitialCommand, setTerminalInitialCommand] = useState<string | undefined>(undefined);
   const [gameApps, setGameApps] = useState<App[]>(initialGameApps);
-  const [powerState, setPowerState] = useState<PowerState>('running');
+  const [internalPowerState, setInternalPowerState] = useState<PowerState>('running');
   const [powerMessage, setPowerMessage] = useState('');
   const [booting, setBooting] = useState(true);
   const [apps, setApps] = useState<App[]>([]);
@@ -721,11 +726,17 @@ export default function Desktop() {
   const [newItemName, setNewItemName] = useState('');
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item?: App } | null>(null);
 
+   useEffect(() => {
+    if (powerState === 'confirming') {
+        setInternalPowerState('confirming');
+    }
+   }, [powerState]);
+
 
    useEffect(() => {
     const generatedApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
-    let finalApps = generatedApps;
-    if (!isAuthenticated) {
+    let finalApps = generatedApps.filter(app => app.id !== 'task-manager');
+     if (!isAuthenticated) {
       finalApps = finalApps.filter(app => app.id !== 'game-manager');
     }
     
@@ -750,12 +761,13 @@ export default function Desktop() {
   }
   
     const handleShutdown = () => {
-        setPowerState('confirming');
+        setInternalPowerState('confirming');
         setPowerMessage('Shutting Down...');
         setWindows([]); // Close all windows
         setTimeout(() => {
-            setPowerState('shutting_down');
+            setInternalPowerState('shutting_down');
             setTimeout(() => {
+                setInternalPowerState('off');
                 setPowerState('off');
                 setPowerMessage('System Halted. It is now safe to turn off your computer.');
             }, 3000);
@@ -763,11 +775,11 @@ export default function Desktop() {
     };
 
     const handleRestart = () => {
-        setPowerState('confirming');
+        setInternalPowerState('confirming');
         setPowerMessage('Restarting...');
         setWindows([]); // Close all windows
         setTimeout(() => {
-            setPowerState('restarting');
+            setInternalPowerState('restarting');
             setTimeout(() => {
                 // Instead of reloading, we trigger the boot sequence again
                 handlePowerOn();
@@ -777,6 +789,7 @@ export default function Desktop() {
 
     const handlePowerOn = () => {
         setPowerState('running');
+        setInternalPowerState('running');
         setBooting(true);
     };
 
@@ -838,7 +851,8 @@ export default function Desktop() {
 
 
   const openApp = useCallback((appId: string, options?: { parentId: string }) => {
-    const app = apps.find(a => a.id === appId);
+    const allApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
+    const app = allApps.find(a => a.id === appId);
     if (!app) return;
 
     // Handle opening an item within a folder
@@ -866,7 +880,7 @@ export default function Desktop() {
         if (terminalWindow) {
             focusWindow(terminalWindow.id);
         } else {
-            const terminalApp = apps.find(a => a.id === 'terminal');
+            const terminalApp = allApps.find(a => a.id === 'terminal');
              if (!terminalApp) return;
 
             const newZIndex = zIndexCounter.current + 1;
@@ -907,7 +921,7 @@ export default function Desktop() {
     };
     setWindows(prev => [...prev, newWindow]);
     setActiveWindow(newWindow.id);
-  }, [windows, gameApps, apps]);
+  }, [windows, gameApps, cvContent]);
 
   useEffect(() => {
       if (terminalInitialCommand && windows.some(w => w.appId === 'terminal')) {
@@ -972,7 +986,8 @@ export default function Desktop() {
 
 
   const renderWindowContent = (win: WindowInstance) => {
-    const app = apps.find(a => a.id === win.appId);
+    const allApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
+    const app = allApps.find(a => a.id === win.appId);
     if (!app) return null;
 
     if (win.appId === 'terminal') {
@@ -991,11 +1006,12 @@ export default function Desktop() {
   };
   
   const getWindowTitle = (win: WindowInstance) => {
+    const allApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
     if (!win.history || win.history.length <= 1) {
-        return apps.find(a => a.id === win.appId)?.name || 'Window';
+        return allApps.find(a => a.id === win.appId)?.name || 'Window';
     }
     return win.history
-        .map(appId => apps.find(a => a.id === appId)?.name)
+        .map(appId => allApps.find(a => a.id === appId)?.name)
         .filter(Boolean)
         .join(' > ');
   };
@@ -1007,11 +1023,11 @@ export default function Desktop() {
         return <BootScreen />;
     }
 
-   if (powerState === 'shutting_down' || powerState === 'restarting' || powerState === 'off') {
+   if (internalPowerState === 'shutting_down' || internalPowerState === 'restarting' || internalPowerState === 'off') {
         return (
             <div className="w-full h-full bg-black flex flex-col items-center justify-center text-center p-4">
                 <p className="text-foreground font-code text-2xl animate-pulse mb-8">{powerMessage}</p>
-                 {powerState === 'off' && (
+                 {internalPowerState === 'off' && (
                     <Button onClick={handlePowerOn} variant="primary" size="lg">
                         <Power className="mr-2" /> Power On
                     </Button>
@@ -1034,7 +1050,7 @@ export default function Desktop() {
          </div>
        )}
         
-        <AlertDialog open={powerState === 'confirming'} onOpenChange={(open) => !open && setPowerState('running')}>
+        <AlertDialog open={internalPowerState === 'confirming'} onOpenChange={(open) => !open && setInternalPowerState('running')}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure you want to proceed?</AlertDialogTitle>
@@ -1043,7 +1059,7 @@ export default function Desktop() {
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setPowerState('running')}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => setInternalPowerState('running')}>Cancel</AlertDialogCancel>
                     <Button variant="secondary" onClick={handleRestart}><RefreshCcw /> Restart</Button>
                     <AlertDialogAction asChild>
                          <Button variant="destructive" onClick={handleShutdown}><Power /> Shut Down</Button>
@@ -1131,14 +1147,13 @@ export default function Desktop() {
       ))}
       <Taskbar
         windows={windows}
-        apps={apps}
+        apps={ALL_APPS(cvContent, gameApps, handleGameToggle)}
         onTaskbarClick={handleTaskbarClick}
         onWindowClose={closeWindow}
         activeWindowId={activeWindow}
         onAppLaunch={openApp}
-        onShutdown={() => setPowerState('confirming')}
-        onRestart={() => setPowerState('confirming')}
-        onPowerButtonClick={() => setPowerState('confirming')}
+        onShutdown={() => setInternalPowerState('confirming')}
+        onRestart={() => setInternalPowerState('confirming')}
       />
     </div>
   );

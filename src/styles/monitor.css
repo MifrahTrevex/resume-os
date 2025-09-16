@@ -46,33 +46,6 @@
   height: 100%;
 }
 
-.monitor-stand {
-  position: absolute;
-  bottom: -2.5rem;
-  left: 50%;
-  transform: translateX(-50%) perspective(100px) rotateX(20deg);
-  width: 25%;
-  height: 3rem;
-  background: linear-gradient(to top, #0d1117, #161b22);
-  border: 1px solid #30363d;
-  border-top: none;
-  border-bottom-left-radius: 0.5rem;
-  border-bottom-right-radius: 0.5rem;
-}
-
-.monitor-stand-base {
-  position: absolute;
-  bottom: -0.75rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120%;
-  height: 0.75rem;
-  background: #0d1117;
-  border: 1px solid #30363d;
-  border-radius: 0.25rem;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-}
-
 .monitor-brand {
   position: absolute;
   bottom: 0.5rem;
@@ -134,10 +107,6 @@
 
     .monitor-screen {
         border-radius: 0;
-    }
-
-    .monitor-stand {
-        display: none;
     }
     
     .monitor-brand {
