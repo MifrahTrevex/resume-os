@@ -1,31 +1,19 @@
 
 .monitor {
+  position: relative;
   width: 95vw;
   height: 90vh;
-  max-width: 1400px;
+  max-width: 1600px;
   max-height: 900px;
-  padding: 1.5rem;
-  background-color: hsl(var(--secondary) / 0.5);
-  border-radius: 1rem;
-  border: 2px solid hsl(var(--border) / 0.5);
-  box-shadow: 
-    0 0 25px rgba(0,0,0,0.5),
-    inset 0 0 15px rgba(0,0,0,0.7);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.monitor-bezel {
-  flex-grow: 1;
   background-color: hsl(var(--card));
-  border-radius: 0.5rem;
-  padding: 1rem;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-  position: relative;
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 
+    0 0 50px hsl(var(--primary) / 0.1),
+    inset 0 0 15px hsl(var(--background) / 0.5);
   display: flex;
   flex-direction: column;
-  border: 1px solid hsl(var(--border));
 }
 
 .monitor-screen {
@@ -33,41 +21,41 @@
   background-color: black;
   position: relative;
   overflow: hidden;
-  border-radius: 4px; /* Slight rounding on the actual screen */
-  box-shadow: 0 0 20px hsl(var(--primary) / 0.1);
-  /* Subtle curve effect */
-  transform: perspective(300px) rotateX(2deg) scale(1.02); 
+  border-radius: 0.25rem;
   border: 2px solid hsl(var(--background));
+  box-shadow: inset 0 0 10px hsl(var(--background));
 }
 
-/* This makes sure the content inside fills the screen */
 .monitor-screen > * {
   width: 100%;
   height: 100%;
 }
 
 .monitor-stand {
-  width: 30%;
-  height: 30px;
-  background-color: hsl(var(--secondary) / 0.5);
-  margin: 1.5rem auto -2.5rem; /* Pushes stand down */
-  position: relative;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-  box-shadow: 0 5px 10px rgba(0,0,0,0.4);
-  border: 1px solid hsl(var(--border) / 0.5);
+  position: absolute;
+  bottom: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 25%;
+  height: 2rem;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   border-top: none;
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  box-shadow: inset 0 -5px 10px hsl(var(--background) / 0.5);
 }
 
 .monitor-stand-base {
-  width: 150%;
-  height: 10px;
-  background-color: hsl(var(--secondary) / 0.3);
   position: absolute;
-  bottom: -10px;
-  left: -25%;
-  border-radius: 5px;
-  border: 1px solid hsl(var(--border) / 0.5);
+  bottom: -0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  height: 0.75rem;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.25rem;
 }
 
 .monitor-brand {
@@ -108,21 +96,18 @@
         max-height: 100%;
         border-radius: 0;
         padding: 0.5rem;
+        border: none;
     }
 
-    .monitor-bezel {
-        padding: 0.5rem;
-    }
-    
     .monitor-screen {
-        transform: none; /* Remove perspective on mobile */
+        border-radius: 0;
     }
 
-    .monitor-stand {
+    .monitor-stand, .monitor-stand-base {
         display: none;
     }
     
     .monitor-brand {
-        font-size: 0.7rem;
+        bottom: -1rem; /* Hide it just off screen */
     }
 }
