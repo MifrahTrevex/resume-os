@@ -69,7 +69,7 @@ export const initialCvContent: CvContent = {
 
 
 const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: string) => void }) => {
-    const { userType, promptLogin } = useAuth();
+    const { userType, promptLogin, isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [about, setAbout] = useState(content.about);
 
@@ -90,10 +90,11 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
         <div className="p-4 h-full flex flex-col">
             <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-bold font-headline text-foreground">About Me</h2>
-                {!isEditing ? (
+                {isAuthenticated && !isEditing && (
                     <Button onClick={handleEditClick}>Edit</Button>
-                ) : (
-                    userType === 'admin' && <Button onClick={handleSave}>Save</Button>
+                )}
+                {isAuthenticated && isEditing && (
+                    <Button onClick={handleSave}>Save</Button>
                 )}
             </div>
             {isEditing && userType === 'admin' ? (
@@ -110,7 +111,7 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
 };
 
 const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: CvContent['resume']) => void }) => {
-    const { userType, promptLogin } = useAuth();
+    const { userType, promptLogin, isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [resume, setResume] = useState(content.resume);
     
@@ -179,7 +180,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
         <div className="p-4 space-y-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold font-headline text-foreground">Resume</h2>
-                <Button onClick={handleEditClick}>Edit</Button>
+                {isAuthenticated && <Button onClick={handleEditClick}>Edit</Button>}
             </div>
             <div>
                 <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
