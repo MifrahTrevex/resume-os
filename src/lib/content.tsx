@@ -1,13 +1,13 @@
 
-import type { App, CvContent, Project } from './types';
-import React, { useState } from 'react';
+import type { App, CvContent, Project, Education, Referee } from './types';
+import React, from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check, ExternalLink } from 'lucide-react';
+import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check, ExternalLink, Plus } from 'lucide-react';
 import CSSInvaders from '@/components/css-invaders';
 import DesktopIcon from '@/components/desktop-icon';
 import HackerClicker from '@/components/hacker-clicker';
@@ -83,12 +83,25 @@ export const initialCvContent: CvContent = {
             description: "Delivered technical support to customers, assisting with computer access, internet use, and troubleshooting software and hardware issues. Maintained system performance by performing regular updates, scans, and security checks to prevent malware and unauthorized downloads. Assisted clients with printing, scanning, and document formatting, ensuring high-quality service and customer satisfaction. Configured and monitored network connections to ensure consistent connectivity and minimized downtime. Promoted safe computing practices by educating customers on privacy and responsible internet use. Demonstrated adaptability by efficiently handling multiple tasks and customer requests in a fast-paced environment."
             },
         ],
-        education: [],
+        education: [
+            {
+                degree: "Diploma in Information Communication Technology",
+                institution: "The Cooperative University of Kenya",
+                period: "2021 - 2024",
+            }
+        ],
         skills: [
             "Technical Support", "Troubleshooting Hardware & Software", "Computer hardware and Software Components",
             "Basic Networking configuration and maintenance", "Windows and Linux Operating Systems",
             "Productivity tools( Microsoft Office Suite and Google Workspace", "Cybersecurity Fundamentals",
             "Communication and teamwork", "Problem solving and Critical thinking"
+        ],
+        referees: [
+             {
+                name: "Available Upon Request",
+                title: "",
+                contact: "",
+            }
         ]
     },
     projects: [],
@@ -169,6 +182,25 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
         (newExperience[index] as any)[field] = value;
         setResume({...resume, experience: newExperience});
     }
+    const addExperience = () => setResume({...resume, experience: [...resume.experience, { role: '', company: '', period: '', description: '' }]});
+    const removeExperience = (index: number) => setResume({...resume, experience: resume.experience.filter((_, i) => i !== index) });
+
+    const handleEducationChange = (index: number, field: keyof Education, value: string) => {
+        const newEducation = [...resume.education];
+        newEducation[index][field] = value;
+        setResume({...resume, education: newEducation});
+    }
+    const addEducation = () => setResume({...resume, education: [...resume.education, { degree: '', institution: '', period: '' }]});
+    const removeEducation = (index: number) => setResume({...resume, education: resume.education.filter((_, i) => i !== index) });
+
+    const handleRefereeChange = (index: number, field: keyof Referee, value: string) => {
+        const newReferees = [...resume.referees];
+        newReferees[index][field] = value;
+        setResume({...resume, referees: newReferees});
+    }
+    const addReferee = () => setResume({...resume, referees: [...resume.referees, { name: '', title: '', contact: '' }]});
+    const removeReferee = (index: number) => setResume({...resume, referees: resume.referees.filter((_, i) => i !== index) });
+
 
     if (isEditing && isAuthenticated) {
         return (
@@ -178,35 +210,54 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                     <Button onClick={handleSave}>Save</Button>
                 </div>
                 <ScrollArea className="flex-grow pr-4">
-                    <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
-                    {resume.experience.map((job, i) => (
-                        <div key={i} className="space-y-2 border-b border-border pb-4 mb-4">
-                             <Label>Role</Label>
-                             <Input 
-                                value={job.role} 
-                                onChange={e => handleExperienceChange(i, 'role', e.target.value)}
-                                className="bg-input text-accent font-code border-border"
-                            />
-                            <Label>Company</Label>
-                             <Input 
-                                value={job.company} 
-                                onChange={e => handleExperienceChange(i, 'company', e.target.value)}
-                                className="bg-input text-accent font-code border-border"
-                            />
-                             <Label>Period</Label>
-                             <Input 
-                                value={job.period} 
-                                onChange={e => handleExperienceChange(i, 'period', e.target.value)}
-                                className="bg-input text-accent font-code border-border"
-                            />
-                            <Label>Description</Label>
-                            <Textarea 
-                                value={job.description}
-                                onChange={e => handleExperienceChange(i, 'description', e.target.value)}
-                                className="bg-input text-accent font-code border-border"
-                            />
+                    {/* Experience Editing */}
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-lg font-semibold font-headline">Work Experience</h3>
+                            <Button variant="outline" size="sm" onClick={addExperience}><Plus className="mr-2 h-4 w-4" /> Add</Button>
                         </div>
-                    ))}
+                        {resume.experience.map((job, i) => (
+                            <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
+                                <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeExperience(i)}><Trash2 size={14} /></Button>
+                                <Label>Role</Label><Input value={job.role} onChange={e => handleExperienceChange(i, 'role', e.target.value)} className="bg-input"/>
+                                <Label>Company</Label><Input value={job.company} onChange={e => handleExperienceChange(i, 'company', e.target.value)} className="bg-input"/>
+                                <Label>Period</Label><Input value={job.period} onChange={e => handleExperienceChange(i, 'period', e.target.value)} className="bg-input"/>
+                                <Label>Description</Label><Textarea value={job.description} onChange={e => handleExperienceChange(i, 'description', e.target.value)} className="bg-input"/>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Education Editing */}
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-lg font-semibold font-headline">Education</h3>
+                            <Button variant="outline" size="sm" onClick={addEducation}><Plus className="mr-2 h-4 w-4" /> Add</Button>
+                        </div>
+                        {resume.education.map((edu, i) => (
+                            <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
+                                <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeEducation(i)}><Trash2 size={14} /></Button>
+                                <Label>Degree/Certificate</Label><Input value={edu.degree} onChange={e => handleEducationChange(i, 'degree', e.target.value)} className="bg-input"/>
+                                <Label>Institution</Label><Input value={edu.institution} onChange={e => handleEducationChange(i, 'institution', e.target.value)} className="bg-input"/>
+                                <Label>Period</Label><Input value={edu.period} onChange={e => handleEducationChange(i, 'period', e.target.value)} className="bg-input"/>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Referees Editing */}
+                    <div>
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="text-lg font-semibold font-headline">Referees</h3>
+                            <Button variant="outline" size="sm" onClick={addReferee}><Plus className="mr-2 h-4 w-4" /> Add</Button>
+                        </div>
+                        {resume.referees.map((ref, i) => (
+                            <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
+                                <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeReferee(i)}><Trash2 size={14} /></Button>
+                                <Label>Name</Label><Input value={ref.name} onChange={e => handleRefereeChange(i, 'name', e.target.value)} className="bg-input"/>
+                                <Label>Title/Company</Label><Input value={ref.title} onChange={e => handleRefereeChange(i, 'title', e.target.value)} className="bg-input"/>
+                                <Label>Contact (Email/Phone)</Label><Input value={ref.contact} onChange={e => handleRefereeChange(i, 'contact', e.target.value)} className="bg-input"/>
+                            </div>
+                        ))}
+                    </div>
                 </ScrollArea>
             </div>
         )
@@ -235,12 +286,14 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                 {content.resume.education.length > 0 && (
                     <div>
                         <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Education</h3>
-                        {content.resume.education.map((edu, i) => (
-                            <div key={i} className="mb-4">
-                                <h4 className="font-bold">{edu.degree}</h4>
-                                <p className="text-sm text-muted-foreground">{edu.institution} | {edu.period}</p>
-                            </div>
-                        ))}
+                         <div className="space-y-4">
+                            {content.resume.education.map((edu, i) => (
+                                <div key={i}>
+                                    <h4 className="font-bold">{edu.degree}</h4>
+                                    <p className="text-sm text-muted-foreground">{edu.institution} | {edu.period}</p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -250,6 +303,21 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                         {content.resume.skills.map(skill => <span key={skill} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{skill}</span>)}
                     </div>
                 </div>
+
+                {content.resume.referees.length > 0 && (
+                     <div>
+                        <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Referees</h3>
+                        <div className="space-y-4">
+                            {content.resume.referees.map((ref, i) => (
+                                <div key={i}>
+                                    <h4 className="font-bold">{ref.name}</h4>
+                                    <p className="text-sm text-muted-foreground">{ref.title}</p>
+                                    <p className="text-sm text-muted-foreground">{ref.contact}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </ScrollArea>
     );
@@ -372,7 +440,7 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
 };
 
 const ContactContent = ({ content }: { content: CvContent }) => {
-    const [copiedItem, setCopiedItem] = useState<string | null>(null);
+    const [copiedItem, setCopiedItem] = React.useState<string | null>(null);
 
     const handleCopy = (text: string, itemName: string) => {
         navigator.clipboard.writeText(text);
@@ -477,3 +545,6 @@ export const APPS: App[] = [
     
 
 
+
+
+    

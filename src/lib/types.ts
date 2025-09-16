@@ -40,10 +40,17 @@ export type Education = {
   period: string;
 };
 
+export type Referee = {
+  name: string;
+  title: string;
+  contact: string;
+};
+
 export type ResumeContent = {
   experience: Experience[];
   education: Education[];
   skills: string[];
+  referees: Referee[];
 };
 
 export type Project = {
@@ -63,3 +70,5 @@ export type CvContent = {
     
 
       
+
+    
