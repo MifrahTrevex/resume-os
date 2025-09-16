@@ -811,7 +811,7 @@ export default function Desktop() {
   };
 
   return (
-    <div className="relative w-full h-full p-4">
+    <div className="relative w-full h-full p-4 overflow-hidden">
        {isAuthenticated && (
          <div className="absolute top-4 right-4 z-[100] flex items-center gap-4">
            <div className="flex items-center gap-2 text-sm bg-card/70 p-2 rounded-md">
@@ -823,13 +823,14 @@ export default function Desktop() {
            </Button>
          </div>
        )}
-      <div className="grid grid-cols-1 justify-start gap-4">
-        {APPS.map(app => (
+      <div className="relative w-full h-full">
+        {APPS.map((app, index) => (
           <DesktopIcon
             key={app.id}
             name={app.name}
             icon={app.icon}
             onClick={() => openApp(app.id)}
+            initialPosition={{ x: 20, y: 20 + index * 110 }}
           />
         ))}
       </div>
