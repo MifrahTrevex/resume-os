@@ -119,6 +119,38 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
     setInput('');
     setIsProcessing(true);
     
+    // Game logic takes precedence
+    if (gameMode !== 'interview') {
+        if (lowerCaseCommand === 'exit') {
+            exitGame();
+            setIsProcessing(false);
+            return;
+        }
+
+        if (gameMode === 'firewall-defender') {
+            if (lowerCaseCommand === 'allow' || lowerCaseCommand === 'deny') {
+                handleFirewallGuess(lowerCaseCommand);
+            } else {
+                setLines(prev => [...prev, { type: 'error', content: `Unknown command in game mode. Type 'allow', 'deny', or 'exit'.` }]);
+            }
+        } else if (gameMode === 'tic-tac-toe') {
+            const move = parseInt(lowerCaseCommand, 10);
+            if (!isNaN(move)) {
+                handleTicTacToeMove(move);
+            } else {
+                setLines(prev => [...prev, { type: 'error', content: `Unknown command. Enter a number (1-9) or 'exit'.` }]);
+            }
+        } else if (gameMode === 'guess-the-number') {
+            handleGuess(lowerCaseCommand);
+        } else if (gameMode === 'netrun') {
+            handleNetRunMove(lowerCaseCommand);
+        }
+        
+        setIsProcessing(false);
+        return;
+    }
+    
+    // Command parsing for starting games or AI interpretation
     if (lowerCaseCommand.startsWith('play ')) {
         const game = lowerCaseCommand.split(' ')[1];
         if (game === 'firewall-defender') {
@@ -132,37 +164,6 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
         } else {
              setLines(prev => [...prev, { type: 'error', content: `Unknown game: ${game}` }]);
         }
-        setIsProcessing(false);
-        return;
-    }
-
-    if (lowerCaseCommand === 'exit') {
-        if (gameMode !== 'interview') {
-            exitGame();
-        } else {
-             setLines(prev => [...prev, { type: 'error', content: `Not in a game. Cannot exit.` }]);
-        }
-        setIsProcessing(false);
-        return;
-    }
-    
-    if (gameMode === 'firewall-defender') {
-        if (lowerCaseCommand === 'allow' || lowerCaseCommand === 'deny') {
-            handleFirewallGuess(lowerCaseCommand);
-        } else {
-            setLines(prev => [...prev, { type: 'error', content: `Unknown command in game mode. Type 'allow', 'deny', or 'exit'.` }]);
-        }
-    } else if (gameMode === 'tic-tac-toe') {
-        const move = parseInt(lowerCaseCommand, 10);
-        if (!isNaN(move)) {
-            handleTicTacToeMove(move);
-        } else {
-            setLines(prev => [...prev, { type: 'error', content: `Unknown command. Enter a number (1-9) or 'exit'.` }]);
-        }
-    } else if (gameMode === 'guess-the-number') {
-        handleGuess(lowerCaseCommand);
-    } else if (gameMode === 'netrun') {
-        handleNetRunMove(lowerCaseCommand);
     } else {
       // AI Command Interpretation for non-game commands
       const result = await handleCommand(lowerCaseCommand);
@@ -189,7 +190,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
     }
     
     setIsProcessing(false);
-  }, [gameMode, openApp, currentPacket, score, board, secretNumber, guesses, netRunGrid]);
+  }, [gameMode, openApp, currentPacket, score, board, secretNumber, guesses, netRunGrid, startPos, endPos]);
   
   useEffect(() => {
     if (!initialMessageDisplayed) {
