@@ -47,7 +47,16 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     });
     const assistantMessage: Message = { role: 'model', content: result.response };
     setHistory([assistantMessage]);
-    setLines(prev => [...prev, { type: 'output', content: result.response }]);
+    setLines(prev => {
+        const newLines = [...prev];
+        const typingIndex = newLines.findLastIndex(line => line.content === "AI is typing...");
+        if (typingIndex !== -1) {
+            newLines[typingIndex] = { type: 'output', content: result.response };
+        } else {
+            newLines.push({ type: 'output', content: result.response });
+        }
+        return newLines;
+    });
     setIsProcessing(false);
   }, [cvContent]);
   
@@ -84,7 +93,6 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
 
     setLines(prev => {
         const newLines = [...prev];
-        // Replace the "typing" message with the actual response
         const typingIndex = newLines.findLastIndex(line => line.content === "AI is typing...");
         if (typingIndex !== -1) {
             newLines[typingIndex] = { type: 'output', content: result.response };
