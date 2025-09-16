@@ -38,7 +38,7 @@ export default function DesktopIcon({ icon, name, onClick, initialPosition, onCo
       )}
     >
       <div className="w-16 h-16 flex items-center justify-center pointer-events-none">{icon}</div>
-      <span className="text-sm select-none bg-background/50 px-1 py-0.5 rounded-sm pointer-events-none">{name}</span>
+      <span className="text-sm select-none pointer-events-none">{name}</span>
     </button>
   );
 }

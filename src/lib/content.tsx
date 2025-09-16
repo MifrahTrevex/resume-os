@@ -16,46 +16,46 @@ import { Badge } from '@/components/ui/badge';
 import type { PersonalInfo } from './types';
 import { Switch } from '@/components/ui/switch';
 
-
-const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M41 4H15C13.8954 4 13 4.89543 13 6V58C13 59.1046 13.8954 60 15 60H49C50.1046 60 51 59.1046 51 58V14L41 4Z" fill={color} fillOpacity="0.8"/>
-        <path d="M41 4V14H51" fill={color} fillOpacity="0.5"/>
+const FileIcon = ({ colorClass = "text-primary/70" }: { colorClass?: string }) => (
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={`s-6 w-16 h-16 ${colorClass}`}>
+        <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity="0.1"/>
+        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M16 13H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M16 17H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M10 9H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
 );
 
 const FolderIcon = () => (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M53 19H34.4142C33.5858 19 32.7878 18.6839 32.1716 18.0678L29.9322 15.8284C29.3161 15.2122 28.5181 14.8961 27.6897 14.8961H11C9.89543 14.8961 9 15.7916 9 16.8961V49C9 50.1046 9.89543 51 11 51H53C54.1046 51 55 50.1046 55 49V21C55 19.8954 54.1046 19 53 19Z" fill="#a5f3fc" fillOpacity="0.7"/>
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-primary/70">
+        <path d="M3 20V4C3 2.89543 3.89543 2 5 2H9.37868C9.75704 2 10.1226 2.11333 10.4239 2.3219L12.4239 3.6781C12.7252 3.88667 13.0908 4 13.4691 4H19C20.1046 4 21 4.89543 21 6V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M3 20V9C3 7.89543 3.89543 7 5 7H19C20.1046 7 21 7.89543 21 9V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity="0.1"/>
     </svg>
 );
 
+
 const TerminalAppIcon = () => (
-     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="64" height="64" rx="8" fill="#111827"/>
-        <path d="M18 28L26 36L18 44" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M30 44H46" stroke="#e5e7eb" strokeWidth="3" strokeLinecap="round"/>
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16">
+        <rect x="2" y="2" width="20" height="20" rx="2" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="hsl(var(--primary))" fillOpacity="0.1"/>
+        <path d="M6 9.5L10 12.5L6 15.5" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 15.5H18" stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
 );
 
 const GamepadIcon = () => (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="64" height="64" rx="8" fill="#2A2A2A"/>
-        <path d="M24 30H18V36H24V30Z" fill="#4ade80"/>
-        <path d="M21 27V39" stroke="#4ade80" strokeWidth="2"/>
-        <circle cx="40" cy="36" r="3" fill="#4ade80"/>
-        <circle cx="46" cy="30" r="3" fill="#4ade80"/>
+     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16">
+        <path d="M9.88246 3.99997L13.2303 3.39313C17.0621 2.7037 20.242 5.92383 19.6053 9.72083L19.0606 13.1165L14.0738 12.0127L14.6185 8.61704C15.0211 6.279 13.2828 4.2208 10.9268 4.02082L9.88246 3.99997Z" stroke="hsl(var(--foreground))" strokeWidth="1.5"/>
+        <path d="M12.9159 20.5186L9.56804 21.1254C5.73628 21.8149 2.55648 18.5947 3.19321 14.7977L4.25431 8.24285C4.89104 4.44585 9.15783 2.50379 12.2227 5.06452L14.0738 6.64998L19.0606 7.75375L12.9159 20.5186Z" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="hsl(var(--primary))" fillOpacity="0.1"/>
+        <path d="M19.0607 13.1165L14.0739 12.0127L9.0871 13.1165L12.9159 20.5186L19.6054 9.72083C20.2421 5.92383 17.0622 2.7037 13.2304 3.39313L12.75 3.5" stroke="hsl(var(--foreground))" strokeWidth="1.5"/>
     </svg>
 );
 
 const AdminIcon = () => (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="64" height="64" rx="8" fill="#4A5568"/>
-        <path d="M32 36C36.4183 36 40 32.4183 40 28C40 23.5817 36.4183 20 32 20C27.5817 20 24 23.5817 24 28C24 32.4183 27.5817 36 32 36Z" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M32 44C27 44 24.5 41.5 22 39" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M32 44C37 44 39.5 41.5 42 39" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M42.001 24.0005L44.8294 25.4147L46.2436 28.2431L44.8294 31.0715L42.001 32.4857L39.1726 31.0715L37.7584 28.2431L39.1726 25.4147L42.001 24.0005Z" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M22.001 24.0005L24.8294 25.4147L26.2436 28.2431L24.8294 31.0715L22.001 32.4857L19.1726 31.0715L17.7584 28.2431L19.1726 25.4147L22.001 24.0005Z" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-foreground/70">
+        <path d="M19 10C21.2091 10 23 8.20914 23 6C23 3.79086 21.2091 2 19 2C16.7909 2 15 3.79086 15 6C15 8.20914 16.7909 10 19 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M5 22C7.20914 22 9 20.2091 9 18C9 15.7909 7.20914 14 5 14C2.79086 14 1 15.7909 1 18C1 20.2091 2.79086 22 5 22Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M14 6L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M10 18L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
 );
 
@@ -692,7 +692,7 @@ const GamesFolderContent = ({ openApp, games }: { openApp: (appId: string) => vo
                     className="relative flex flex-col items-center justify-start gap-1 p-2 rounded-md w-24 h-24 text-center text-white/90 transition-colors hover:bg-white/10 focus:bg-white/20 focus:outline-none focus:ring-2 focus:ring-ring/50"
                 >
                     <div className="w-16 h-16 flex items-center justify-center pointer-events-none">{app.icon}</div>
-                    <span className="text-sm select-none bg-background/50 px-1 py-0.5 rounded-sm pointer-events-none">{app.name}</span>
+                    <span className="text-sm select-none pointer-events-none">{app.name}</span>
                     {isAuthenticated && !app.active && (
                         <div className="absolute top-1 right-1 p-1 bg-destructive rounded-full text-destructive-foreground text-xs leading-none">
                             Off
@@ -735,8 +735,8 @@ const GameManagerContent = ({ games, onToggle }: { games: App[], onToggle: (game
 
 const PersonalFolderContent = ({ openApp }: { openApp: (appId: string) => void; }) => {
     const apps = [
-        { id: 'interests', name: 'Interests.txt', icon: <FileIcon color="#a7f3d0" /> },
-        { id: 'details', name: 'Details.txt', icon: <FileIcon color="#a7f3d0" /> },
+        { id: 'interests', name: 'Interests.txt', icon: <FileIcon colorClass="text-foreground/70" /> },
+        { id: 'details', name: 'Details.txt', icon: <FileIcon colorClass="text-foreground/70" /> },
     ];
 
     return (
@@ -748,7 +748,7 @@ const PersonalFolderContent = ({ openApp }: { openApp: (appId: string) => void; 
                     className="relative flex flex-col items-center justify-start gap-1 p-2 rounded-md w-24 h-24 text-center text-white/90 transition-colors hover:bg-white/10 focus:bg-white/20 focus:outline-none focus:ring-2 focus:ring-ring/50"
                 >
                     <div className="w-16 h-16 flex items-center justify-center pointer-events-none">{app.icon}</div>
-                    <span className="text-sm select-none bg-background/50 px-1 py-0.5 rounded-sm pointer-events-none">{app.name}</span>
+                    <span className="text-sm select-none pointer-events-none">{app.name}</span>
                 </button>
             ))}
         </div>
@@ -769,13 +769,13 @@ export const initialGameApps: App[] = [
 ];
 
 export const ALL_APPS: (cvContent: CvContent, games: App[], onGameToggle: (gameId: string) => void) => App[] = (cvContent, games, onGameToggle) => [
-    { id: 'about', name: 'About.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <AboutContent {...props} content={cvContent} /> },
-    { id: 'resume', name: 'Resume.pdf', icon: <FileIcon color="#fecaca" />, component: (props: any) => <ResumeContent {...props} content={cvContent} /> },
+    { id: 'about', name: 'About.txt', icon: <FileIcon colorClass="text-foreground/70" />, component: (props: any) => <AboutContent {...props} content={cvContent} /> },
+    { id: 'resume', name: 'Resume.pdf', icon: <FileIcon colorClass="text-destructive/70" />, component: (props: any) => <ResumeContent {...props} content={cvContent} /> },
     { id: 'projects', name: 'Projects', icon: <FolderIcon />, component: (props: any) => <ProjectsContent {...props} content={cvContent} /> },
     { id: 'contact', name: 'Contact', icon: <FolderIcon />, component: () => <ContactContent content={cvContent} /> },
     { id: 'personal', name: 'Personal', icon: <FolderIcon />, component: PersonalFolderContent },
-    { id: 'interests', name: 'Interests.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <InterestsContent {...props} content={cvContent} />, isFolderContent: true, parentId: 'personal' },
-    { id: 'details', name: 'Details.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <DetailsContent {...props} content={cvContent} />, isFolderContent: true, parentId: 'personal' },
+    { id: 'interests', name: 'Interests.txt', icon: <FileIcon colorClass="text-foreground/70" />, component: (props: any) => <InterestsContent {...props} content={cvContent} />, isFolderContent: true, parentId: 'personal' },
+    { id: 'details', name: 'Details.txt', icon: <FileIcon colorClass="text-foreground/70" />, component: (props: any) => <DetailsContent {...props} content={cvContent} />, isFolderContent: true, parentId: 'personal' },
     { id: 'terminal', name: 'Terminal', icon: <TerminalAppIcon />, component: PlaceholderTerminal },
     { id: 'games', name: 'Games', icon: <FolderIcon />, component: (props: any) => <GamesFolderContent {...props} games={games} /> },
     ...games.map(g => ({...g, isFolderContent: true, parentId: 'games'})),
