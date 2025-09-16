@@ -1,4 +1,5 @@
 
+
 export type App = {
   id: string;
   name: string;
@@ -19,6 +20,7 @@ export type WindowInstance = {
 export type PersonalInfo = {
   name: string;
   title: string;
+  imageUrl: string;
   contact: {
     email: string;
     linkedin: string;

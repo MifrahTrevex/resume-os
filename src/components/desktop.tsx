@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
@@ -796,7 +797,7 @@ export default function Desktop() {
     }
 
     if (win.appId === 'about') {
-        return <app.component content={cvContent} onSave={(newAbout: string) => handleContentUpdate({ about: newAbout })} />;
+        return <app.component content={cvContent} onSave={(newContent: Partial<CvContent>) => handleContentUpdate(newContent)} />;
     }
     
     if (win.appId === 'resume') {

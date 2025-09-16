@@ -1,6 +1,6 @@
 
 import type { App, CvContent, Project, Education, Referee } from './types';
-import React, from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +14,8 @@ import HackerClicker from '@/components/hacker-clicker';
 import SystemOverride from '@/components/system-override';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import type { PersonalInfo } from './types';
+
 
 const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -59,6 +61,7 @@ export const initialCvContent: CvContent = {
     personalInfo: {
         name: "DICKENS OKOTH OTIENO",
         title: "IT Professional",
+        imageUrl: "",
         contact: {
             email: "dickenokoth@gmail.com",
             linkedin: "https://www.linkedin.com/in/dickens-okoth-930147248",
@@ -118,37 +121,77 @@ export const initialCvContent: CvContent = {
 };
 
 
-const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: string) => void }) => {
+const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: Partial<CvContent>) => void }) => {
     const { isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = React.useState(false);
     const [about, setAbout] = React.useState(content.about);
+    const [personalInfo, setPersonalInfo] = React.useState(content.personalInfo);
 
     const handleSave = () => {
-        onSave(about);
+        onSave({ about, personalInfo });
         setIsEditing(false);
     }
     
+    const handlePersonalInfoChange = (field: keyof PersonalInfo, value: string) => {
+        setPersonalInfo(prev => ({ ...prev, [field]: value }));
+    }
+
+    const handleContactChange = (field: keyof PersonalInfo['contact'], value: string) => {
+        setPersonalInfo(prev => ({ ...prev, contact: { ...prev.contact, [field]: value } }));
+    }
+
     return (
         <ScrollArea className="h-full">
             <div className="p-4 h-full flex flex-col">
                 <Card className="bg-card/50">
                     <CardHeader className="items-center text-center">
-                         <div className="rounded-full border-4 border-primary/50" data-ai-hint="hacker avatar">
-                            <HackerAvatar />
-                        </div>
-                        <CardTitle className="text-2xl pt-2">{content.personalInfo.name}</CardTitle>
-                        <CardDescription>{content.personalInfo.title}</CardDescription>
-                         <div className="flex items-center gap-4 pt-2">
-                            <Button asChild variant="ghost" size="icon">
-                                <a href={content.personalInfo.contact.linkedin} target="_blank" rel="noopener noreferrer">
-                                    <Linkedin />
-                                </a>
-                            </Button>
-                             <Button asChild variant="ghost" size="icon">
-                                <a href={content.personalInfo.contact.github} target="_blank" rel="noopener noreferrer">
-                                    <Github />
-                                </a>
-                            </Button>
+                        {isEditing && isAuthenticated ? (
+                            <div className="w-full space-y-2 mb-4">
+                                <Label htmlFor="imageUrl">Profile Image URL</Label>
+                                <Input id="imageUrl" value={personalInfo.imageUrl} onChange={(e) => handlePersonalInfoChange('imageUrl', e.target.value)} />
+                            </div>
+                        ) : (
+                            <div className="rounded-full border-4 border-primary/50" data-ai-hint="hacker avatar">
+                                {content.personalInfo.imageUrl ? <img src={content.personalInfo.imageUrl} alt="Profile" className="w-32 h-32 rounded-full object-cover" /> : <HackerAvatar />}
+                            </div>
+                        )}
+                        
+                        {isEditing && isAuthenticated ? (
+                            <div className="w-full space-y-2">
+                                <Label htmlFor="name">Name</Label>
+                                <Input id="name" value={personalInfo.name} onChange={(e) => handlePersonalInfoChange('name', e.target.value)} />
+                                <Label htmlFor="title">Title</Label>
+                                <Input id="title" value={personalInfo.title} onChange={(e) => handlePersonalInfoChange('title', e.target.value)} />
+                            </div>
+                        ) : (
+                            <>
+                                <CardTitle className="text-2xl pt-2">{content.personalInfo.name}</CardTitle>
+                                <CardDescription>{content.personalInfo.title}</CardDescription>
+                            </>
+                        )}
+                        
+                        <div className="flex items-center gap-4 pt-2">
+                            {isEditing && isAuthenticated ? (
+                                <div className="w-full space-y-2 text-left">
+                                    <Label htmlFor="linkedin">LinkedIn URL</Label>
+                                    <Input id="linkedin" value={personalInfo.contact.linkedin} onChange={(e) => handleContactChange('linkedin', e.target.value)} />
+                                    <Label htmlFor="github">GitHub URL</Label>
+                                    <Input id="github" value={personalInfo.contact.github} onChange={(e) => handleContactChange('github', e.target.value)} />
+                                </div>
+                            ) : (
+                                <>
+                                    <Button asChild variant="ghost" size="icon">
+                                        <a href={content.personalInfo.contact.linkedin} target="_blank" rel="noopener noreferrer">
+                                            <Linkedin />
+                                        </a>
+                                    </Button>
+                                    <Button asChild variant="ghost" size="icon">
+                                        <a href={content.personalInfo.contact.github} target="_blank" rel="noopener noreferrer">
+                                            <Github />
+                                        </a>
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     </CardHeader>
                     <CardContent className="pt-0">
@@ -158,7 +201,10 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
                                 <Button onClick={() => setIsEditing(true)}>Edit</Button>
                             )}
                             {isAuthenticated && isEditing && (
-                                <Button onClick={handleSave}>Save</Button>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                                    <Button onClick={handleSave}>Save</Button>
+                                </div>
                             )}
                         </div>
                         {isEditing && isAuthenticated ? (
@@ -179,13 +225,18 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
 
 const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: CvContent['resume']) => void }) => {
     const { isAuthenticated } = useAuth();
-    const [isEditing, setIsEditing] = React.useState(false);
+    const [isEditing, setIsEditing] = React.useState<string | null>(null);
     const [resume, setResume] = React.useState(content.resume);
     
     const handleSave = () => {
         onSave(resume);
-        setIsEditing(false);
+        setIsEditing(null);
     }
+    
+    const handleSectionSave = () => {
+        onSave(resume);
+        setIsEditing(null);
+    };
 
     const handleExperienceChange = (index: number, field: string, value: string) => {
         const newExperience = [...resume.experience];
@@ -202,6 +253,11 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
     }
     const addEducation = () => setResume({...resume, education: [...resume.education, { degree: '', institution: '', period: '' }]});
     const removeEducation = (index: number) => setResume({...resume, education: resume.education.filter((_, i) => i !== index) });
+    
+    const handleSkillsChange = (value: string) => {
+        setResume({...resume, skills: value.split(',').map(s => s.trim())});
+    }
+
 
     const handleRefereeChange = (index: number, field: keyof Referee, value: string) => {
         const newReferees = [...resume.referees];
@@ -211,60 +267,35 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
     const addReferee = () => setResume({...resume, referees: [...resume.referees, { name: '', title: '', contact: '' }]});
     const removeReferee = (index: number) => setResume({...resume, referees: resume.referees.filter((_, i) => i !== index) });
 
-
-    if (isEditing && isAuthenticated) {
+    const renderEditSection = (title: string, data: any[], addFn: () => void, removeFn: (i: number) => void, changeFn: (i: number, f: any, v: string) => void, fields: {key: string, label: string, type?: 'textarea'}[]) => {
         return (
             <div className="p-4 space-y-6 h-full flex flex-col">
                 <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-bold font-headline text-foreground">Edit Resume</h2>
-                    <Button onClick={handleSave}>Save</Button>
-                </div>
-                <ScrollArea className="flex-grow pr-4">
-                    {/* Experience Editing */}
-                    <div className="mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-lg font-semibold font-headline">Work Experience</h3>
-                            <Button variant="outline" size="sm" onClick={addExperience}><Plus className="mr-2 h-4 w-4" /> Add</Button>
-                        </div>
-                        {resume.experience.map((job, i) => (
-                            <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
-                                <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeExperience(i)}><Trash2 size={14} /></Button>
-                                <Label>Role</Label><Input value={job.role} onChange={e => handleExperienceChange(i, 'role', e.target.value)} />
-                                <Label>Company</Label><Input value={job.company} onChange={e => handleExperienceChange(i, 'company', e.target.value)} />
-                                <Label>Period</Label><Input value={job.period} onChange={e => handleExperienceChange(i, 'period', e.target.value)} />
-                                <Label>Description</Label><Textarea value={job.description} onChange={e => handleExperienceChange(i, 'description', e.target.value)} />
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Education Editing */}
-                    <div className="mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-lg font-semibold font-headline">Education</h3>
-                            <Button variant="outline" size="sm" onClick={addEducation}><Plus className="mr-2 h-4 w-4" /> Add</Button>
-                        </div>
-                        {resume.education.map((edu, i) => (
-                            <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
-                                <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeEducation(i)}><Trash2 size={14} /></Button>
-                                <Label>Degree/Certificate</Label><Input value={edu.degree} onChange={e => handleEducationChange(i, 'degree', e.target.value)} />
-                                <Label>Institution</Label><Input value={edu.institution} onChange={e => handleEducationChange(i, 'institution', e.target.value)} />
-                                <Label>Period</Label><Input value={edu.period} onChange={e => handleEducationChange(i, 'period', e.target.value)} />
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Referees Editing */}
+                    <h2 className="text-xl font-bold font-headline text-foreground">Edit {title}</h2>
                     <div>
+                        <Button variant="outline" onClick={() => setIsEditing(null)} className="mr-2">Cancel</Button>
+                        <Button onClick={handleSectionSave}>Save</Button>
+                    </div>
+                </div>
+                 <ScrollArea className="flex-grow pr-4">
+                    <div className="mb-6">
                         <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-lg font-semibold font-headline">Referees</h3>
-                            <Button variant="outline" size="sm" onClick={addReferee}><Plus className="mr-2 h-4 w-4" /> Add</Button>
+                            <h3 className="text-lg font-semibold font-headline">{title}</h3>
+                            <Button variant="outline" size="sm" onClick={addFn}><Plus className="mr-2 h-4 w-4" /> Add</Button>
                         </div>
-                        {resume.referees.map((ref, i) => (
+                        {data.map((item, i) => (
                             <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
-                                <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeReferee(i)}><Trash2 size={14} /></Button>
-                                <Label>Name</Label><Input value={ref.name} onChange={e => handleRefereeChange(i, 'name', e.target.value)} />
-                                <Label>Title/Company</Label><Input value={ref.title} onChange={e => handleRefereeChange(i, 'title', e.target.value)} />
-                                <Label>Contact (Email/Phone)</Label><Input value={ref.contact} onChange={e => handleRefereeChange(i, 'contact', e.target.value)} />
+                                <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeFn(i)}><Trash2 size={14} /></Button>
+                                {fields.map(field => (
+                                    <div key={field.key}>
+                                        <Label>{field.label}</Label>
+                                        {field.type === 'textarea' ? (
+                                            <Textarea value={item[field.key]} onChange={e => changeFn(i, field.key as any, e.target.value)} />
+                                        ) : (
+                                            <Input value={item[field.key]} onChange={e => changeFn(i, field.key as any, e.target.value)} />
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         ))}
                     </div>
@@ -273,15 +304,56 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
         )
     }
 
+    if (isEditing) {
+        switch (isEditing) {
+            case 'experience':
+                return renderEditSection('Work Experience', resume.experience, addExperience, removeExperience, handleExperienceChange, [
+                    { key: 'role', label: 'Role' },
+                    { key: 'company', label: 'Company' },
+                    { key: 'period', label: 'Period' },
+                    { key: 'description', label: 'Description', type: 'textarea' },
+                ]);
+            case 'education':
+                return renderEditSection('Education', resume.education, addEducation, removeEducation, handleEducationChange, [
+                    { key: 'degree', label: 'Degree/Certificate' },
+                    { key: 'institution', label: 'Institution' },
+                    { key: 'period', label: 'Period' },
+                ]);
+            case 'skills':
+                 return (
+                    <div className="p-4 space-y-6 h-full flex flex-col">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-xl font-bold font-headline text-foreground">Edit Skills</h2>
+                            <div>
+                                <Button variant="outline" onClick={() => setIsEditing(null)} className="mr-2">Cancel</Button>
+                                <Button onClick={handleSectionSave}>Save</Button>
+                            </div>
+                        </div>
+                        <Label>Skills (comma-separated)</Label>
+                        <Textarea value={resume.skills.join(', ')} onChange={e => handleSkillsChange(e.target.value)} className="h-48" />
+                    </div>
+                );
+            case 'referees':
+                return renderEditSection('Referees', resume.referees, addReferee, removeReferee, handleRefereeChange, [
+                    { key: 'name', label: 'Name' },
+                    { key: 'title', label: 'Title/Company' },
+                    { key: 'contact', label: 'Contact (Email/Phone)' },
+                ]);
+            default:
+                setIsEditing(null);
+                return null;
+        }
+    }
+
+
     return (
         <ScrollArea className="h-full">
             <div className="p-4 space-y-6">
-                <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-bold font-headline text-foreground">Resume</h2>
-                    {isAuthenticated && <Button onClick={() => setIsEditing(true)}>Edit</Button>}
-                </div>
                 <div>
-                    <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-lg font-semibold font-headline">Work Experience</h3>
+                         {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('experience')}>Edit</Button>}
+                    </div>
                     <div className="space-y-4">
                         {content.resume.experience.map((job, i) => (
                             <div key={i}>
@@ -295,7 +367,10 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                 
                 {content.resume.education.length > 0 && (
                     <div>
-                        <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Education</h3>
+                         <div className="flex justify-between items-center mt-6 mb-2">
+                            <h3 className="text-lg font-semibold font-headline">Education</h3>
+                            {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('education')}>Edit</Button>}
+                        </div>
                          <div className="space-y-4">
                             {content.resume.education.map((edu, i) => (
                                 <div key={i}>
@@ -308,7 +383,10 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                 )}
 
                 <div>
-                    <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Skills</h3>
+                    <div className="flex justify-between items-center mt-6 mb-2">
+                        <h3 className="text-lg font-semibold font-headline">Skills</h3>
+                         {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('skills')}>Edit</Button>}
+                    </div>
                     <div className="flex flex-wrap gap-2">
                         {content.resume.skills.map(skill => <span key={skill} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{skill}</span>)}
                     </div>
@@ -316,7 +394,10 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
 
                 {content.resume.referees.length > 0 && (
                      <div>
-                        <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Referees</h3>
+                        <div className="flex justify-between items-center mt-6 mb-2">
+                            <h3 className="text-lg font-semibold font-headline">Referees</h3>
+                            {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('referees')}>Edit</Button>}
+                        </div>
                         <div className="space-y-4">
                             {content.resume.referees.map((ref, i) => (
                                 <div key={i}>
