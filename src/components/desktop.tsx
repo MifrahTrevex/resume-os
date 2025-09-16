@@ -6,12 +6,11 @@ import type { WindowInstance, CvContent, Project } from '@/lib/types';
 import { APPS, initialCvContent } from '@/lib/content';
 import Window from './window';
 import DesktopIcon from './desktop-icon';
-import { handleCommand, handleInterview } from '@/lib/actions';
+import { handleInterview, handleTextToSpeech } from '@/lib/actions';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { LogOut, User } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-import type { InterpretTerminalCommandOutput } from '@/ai/flows/terminal-command-interpretation';
 import type { InterviewOutput } from '@/ai/flows/interview-flow';
 
 type TerminalLine = {
@@ -32,12 +31,25 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const endOfTerminalRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const scrollToBottom = () => {
     endOfTerminalRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(scrollToBottom, [lines]);
+
+  const playAudio = async (text: string) => {
+    try {
+      const { media } = await handleTextToSpeech({ text });
+      if (audioRef.current) {
+        audioRef.current.src = media;
+        audioRef.current.play();
+      }
+    } catch (error) {
+      console.error("Error playing audio:", error);
+    }
+  };
 
   const startInterview = useCallback(async () => {
     setIsProcessing(true);
@@ -48,6 +60,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     const assistantMessage: Message = { role: 'model', content: result.response };
     setHistory([assistantMessage]);
     setLines(prev => [...prev, { type: 'output', content: result.response }]);
+    playAudio(result.response);
     setIsProcessing(false);
   }, [cvContent]);
   
@@ -89,15 +102,17 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
         return newLines;
     });
 
+    playAudio(result.response);
     setIsProcessing(false);
   };
 
   return (
     <div className="bg-black text-foreground font-code h-full flex flex-col p-2 text-sm">
+      <audio ref={audioRef} style={{ display: 'none' }} />
       <div className="flex-grow overflow-y-auto">
         {lines.map((line, index) => (
           <div key={index} className="flex gap-2">
-            {line.type === 'input' && <span className="text-accent">$</span>}
+            {line.type === 'input' && <span className="text-primary">$</span>}
             <p className={`${line.type === 'error' ? 'text-destructive' : ''} ${line.content === 'AI is typing...' ? 'italic text-muted-foreground' : ''}`}>
               {line.content}
             </p>
@@ -106,7 +121,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
         <div ref={endOfTerminalRef} />
       </div>
       <form onSubmit={handleSubmit} className="flex items-center gap-2 mt-2">
-        <span className="text-accent">$</span>
+        <span className="text-primary">$</span>
         <Input
           type="text"
           value={input}

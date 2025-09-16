@@ -95,7 +95,7 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
                  <Textarea 
                     value={about}
                     onChange={(e) => setAbout(e.target.value)}
-                    className="flex-grow bg-input text-foreground font-code border-border focus:ring-ring"
+                    className="flex-grow bg-input text-accent font-code border-border focus:ring-ring"
                  />
             ) : (
                 <p className="whitespace-pre-wrap flex-grow">{content.about}</p>
@@ -135,25 +135,25 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                              <Input 
                                 value={job.role} 
                                 onChange={e => handleExperienceChange(i, 'role', e.target.value)}
-                                className="bg-input text-foreground font-code border-border"
+                                className="bg-input text-accent font-code border-border"
                             />
                             <Label>Company</Label>
                              <Input 
                                 value={job.company} 
                                 onChange={e => handleExperienceChange(i, 'company', e.target.value)}
-                                className="bg-input text-foreground font-code border-border"
+                                className="bg-input text-accent font-code border-border"
                             />
                              <Label>Period</Label>
                              <Input 
                                 value={job.period} 
                                 onChange={e => handleExperienceChange(i, 'period', e.target.value)}
-                                className="bg-input text-foreground font-code border-border"
+                                className="bg-input text-accent font-code border-border"
                             />
                             <Label>Description</Label>
                             <Textarea 
                                 value={job.description}
                                 onChange={e => handleExperienceChange(i, 'description', e.target.value)}
-                                className="bg-input text-foreground font-code border-border"
+                                className="bg-input text-accent font-code border-border"
                             />
                         </div>
                     ))}
@@ -254,25 +254,25 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
                             <Input
                                 value={proj.title}
                                 onChange={e => handleProjectChange(i, 'title', e.target.value)}
-                                className="bg-input text-foreground font-code border-border"
+                                className="bg-input text-accent font-code border-border"
                             />
                             <Label>Description</Label>
                             <Textarea
                                 value={proj.description}
                                 onChange={e => handleProjectChange(i, 'description', e.target.value)}
-                                className="bg-input text-foreground font-code border-border"
+                                className="bg-input text-accent font-code border-border"
                             />
                             <Label>Technologies (comma-separated)</Label>
                             <Input
                                 value={proj.tech.join(', ')}
                                 onChange={e => handleProjectChange(i, 'tech', e.target.value)}
-                                className="bg-input text-foreground font-code border-border"
+                                className="bg-input text-accent font-code border-border"
                             />
                             <Label>Link</Label>
                             <Input
                                 value={proj.link}
                                 onChange={e => handleProjectChange(i, 'link', e.target.value)}
-                                className="bg-input text-foreground font-code border-border"
+                                className="bg-input text-accent font-code border-border"
                             />
                         </div>
                     ))}
@@ -296,7 +296,7 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
                             <p className="mt-1 mb-2 whitespace-pre-wrap">{proj.description}</p>
                             <div className="flex items-center gap-2 flex-wrap">
                                 {proj.tech.map(t => <span key={t} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{t}</span>)}
-                                <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs">View Project &rarr;</a>
+                                <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs">View Project &rarr;</a>
                             </div>
                         </div>
                     ))}
