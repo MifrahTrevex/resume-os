@@ -69,8 +69,8 @@ export default function Window({ title, children, onClose, onFocus, onMinimize, 
   } else {
       windowStyles.top = '0px';
       windowStyles.left = '0px';
-      windowStyles.width = '100vw';
-      windowStyles.height = 'calc(100vh - 40px)';
+      windowStyles.width = '100%';
+      windowStyles.height = '100%';
   }
 
 
@@ -78,7 +78,7 @@ export default function Window({ title, children, onClose, onFocus, onMinimize, 
     <div
       ref={windowRef}
       className={cn(
-        'absolute flex flex-col bg-card shadow-lg transition-shadow duration-200',
+        'absolute flex flex-col bg-card shadow-lg',
         isMaximized ? 'rounded-none' : 'rounded-sm',
         isResizing ? 'transition-none' : 'transition-[width,height,top,left] duration-150 ease-out',
         isActive ? 'border-primary shadow-primary/30' : 'border-border shadow-black/50',
