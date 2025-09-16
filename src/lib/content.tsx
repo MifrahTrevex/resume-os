@@ -46,6 +46,14 @@ const GamepadIcon = () => (
     </svg>
 );
 
+const HackerAvatar = () => (
+    <svg width="128" height="128" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fillRule="evenodd" clipRule="evenodd" d="M16 8C16 10.2091 14.2091 12 12 12C9.79086 12 8 10.2091 8 8C8 5.79086 9.79086 4 12 4C14.2091 4 16 5.79086 16 8ZM14 8C14 9.10457 13.1046 10 12 10C10.8954 10 10 9.10457 10 8C10 6.89543 10.8954 6 12 6C13.1046 6 14 6.89543 14 8Z" fill="hsl(var(--foreground))" fillOpacity="0.5"/>
+        <path d="M12 14C16.4183 14 20 15.7909 20 18V20H4V18C4 15.7909 7.58172 14 12 14Z" fill="hsl(var(--primary))"/>
+        <path d="M12 2C6.47715 2 2 6.47715 2 12C2 13.6234 2.4045 15.1442 3.10107 16.4699C4.98151 14.9613 8.27317 14 12 14C15.7268 14 19.0185 14.9613 20.8989 16.4699C21.5955 15.1442 22 13.6234 22 12C22 6.47715 17.5228 2 12 2Z" fill="hsl(var(--foreground))" />
+    </svg>
+);
+
 
 export const initialCvContent: CvContent = {
     personalInfo: {
@@ -102,14 +110,9 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
             <div className="p-4 h-full flex flex-col">
                 <Card className="bg-card/50">
                     <CardHeader className="items-center text-center">
-                        <img
-                            src="https://storage.googleapis.com/aifirebase-773b0.appspot.com/images/passport_style_photo.png"
-                            alt="Profile Picture"
-                            width={128}
-                            height={128}
-                            className="rounded-full border-4 border-primary/50"
-                            data-ai-hint="professional headshot"
-                        />
+                         <div className="rounded-full border-4 border-primary/50" data-ai-hint="hacker avatar">
+                            <HackerAvatar />
+                        </div>
                         <CardTitle className="text-2xl pt-2">{content.personalInfo.name}</CardTitle>
                         <CardDescription>{content.personalInfo.title}</CardDescription>
                          <div className="flex items-center gap-4 pt-2">
