@@ -55,7 +55,7 @@ export default function Window({ title, children, onClose, onFocus, zIndex, init
   
   const windowStyles: React.CSSProperties = {
       zIndex: zIndex,
-      transform: 'translateZ(0)',
+      transform: 'translateZ(0)', // Promote to its own layer for smoother rendering
   };
 
   if (!isMaximized) {
@@ -74,13 +74,13 @@ export default function Window({ title, children, onClose, onFocus, zIndex, init
   return (
     <div
       ref={windowRef}
-      className={`absolute flex flex-col bg-card border-2 border-border shadow-2xl ${isMaximized ? 'rounded-none' : 'rounded-sm'}`}
+      className={`absolute flex flex-col bg-card border-2 border-border shadow-2xl transition-[width,height,top,left] duration-150 ease-out ${isMaximized ? 'rounded-none' : 'rounded-sm'}`}
       style={windowStyles}
       onMouseDown={onFocus}
     >
       <div
         ref={handleRef}
-        className={`flex items-center justify-between p-1 bg-gradient-to-b from-primary/80 to-primary/50 ${isMaximized ? 'rounded-none' : 'rounded-t-sm'} cursor-grab active:cursor-grabbing`}
+        className={`flex items-center justify-between p-1 bg-gradient-to-b from-primary/80 to-primary/50 ${isMaximized ? '' : 'rounded-t-sm'} cursor-grab active:cursor-grabbing`}
         onDoubleClick={handleMaximizeToggle}
       >
         <span className="text-sm font-bold text-primary-foreground select-none ml-1">{title}</span>
