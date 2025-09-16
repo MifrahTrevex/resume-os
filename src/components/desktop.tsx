@@ -733,9 +733,11 @@ export default function Desktop() {
   }, [cvContent, gameApps, isAuthenticated]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setBooting(false), 5000); // Adjust boot time here
-    return () => clearTimeout(timer);
-  }, []);
+    if (booting) {
+        const timer = setTimeout(() => setBooting(false), 5000); // Adjust boot time here
+        return () => clearTimeout(timer);
+    }
+  }, [booting]);
 
   const handleGameToggle = (gameId: string) => {
     setGameApps(prev => prev.map(game => 
@@ -767,9 +769,15 @@ export default function Desktop() {
         setTimeout(() => {
             setPowerState('restarting');
             setTimeout(() => {
-                window.location.reload();
+                // Instead of reloading, we trigger the boot sequence again
+                handlePowerOn();
             }, 3000);
         }, 500);
+    };
+
+    const handlePowerOn = () => {
+        setPowerState('running');
+        setBooting(true);
     };
 
     const handleRightClick = (e: MouseEvent, item?: App) => {
@@ -1001,8 +1009,13 @@ export default function Desktop() {
 
    if (powerState === 'shutting_down' || powerState === 'restarting' || powerState === 'off') {
         return (
-            <div className="w-full h-full bg-black flex items-center justify-center text-center p-4">
-                <p className="text-foreground font-code text-2xl animate-pulse">{powerMessage}</p>
+            <div className="w-full h-full bg-black flex flex-col items-center justify-center text-center p-4">
+                <p className="text-foreground font-code text-2xl animate-pulse mb-8">{powerMessage}</p>
+                 {powerState === 'off' && (
+                    <Button onClick={handlePowerOn} variant="primary" size="lg">
+                        <Power className="mr-2" /> Power On
+                    </Button>
+                )}
             </div>
         );
     }
