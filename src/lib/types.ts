@@ -1,8 +1,10 @@
+
 export type App = {
   id: string;
   name: string;
   icon: React.ReactNode;
   component: React.ComponentType<any>;
+  isTerminal?: boolean;
 };
 
 export type WindowInstance = {
@@ -57,3 +59,5 @@ export type CvContent = {
   resume: ResumeContent;
   projects: Project[];
 };
+
+    

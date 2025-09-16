@@ -73,7 +73,7 @@ function generatePacket(): Packet {
     return { sourceIp, port, type: randomType, isMalicious };
 }
 
-function Terminal({ openApp, cvContent }: { openApp: (appId: string) => void; cvContent: CvContent }) {
+function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: string) => void; cvContent: CvContent, initialCommand?: string }) {
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [history, setHistory] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -96,17 +96,115 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: string) => void; cv
   const scrollToBottom = () => {
     endOfTerminalRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const processCommand = useCallback(async (command: string) => {
+    const lowerCaseCommand = command.trim().toLowerCase();
+    if (!lowerCaseCommand) return;
+
+    setLines(prev => [...prev, { type: 'input', content: lowerCaseCommand }]);
+    setInput('');
+    
+    if (lowerCaseCommand.startsWith('play ')) {
+        const game = lowerCaseCommand.split(' ')[1];
+        if (game === 'firewall-defender') {
+            startFirewallGame();
+            return;
+        }
+        if (game === 'tic-tac-toe') {
+          startTicTacToe();
+          return;
+        }
+        if (game === 'guess-the-number') {
+            startGuessTheNumber();
+            return;
+        }
+    }
+
+    if (lowerCaseCommand === 'exit') {
+        if (gameMode !== 'interview') {
+            exitGame();
+        } else {
+             setLines(prev => [...prev, { type: 'error', content: `Not in a game. Cannot exit.` }]);
+        }
+        return;
+    }
+    
+    if (gameMode === 'firewall-defender') {
+        if (lowerCaseCommand === 'allow' || lowerCaseCommand === 'deny') {
+            handleFirewallGuess(lowerCaseCommand);
+        } else {
+            setLines(prev => [...prev, { type: 'error', content: `Unknown command in game mode. Type 'allow', 'deny', or 'exit'.` }]);
+        }
+        return;
+    }
+    
+    if (gameMode === 'tic-tac-toe') {
+        const move = parseInt(lowerCaseCommand, 10);
+        if (!isNaN(move)) {
+            handleTicTacToeMove(move);
+        } else {
+            setLines(prev => [...prev, { type: 'error', content: `Unknown command. Enter a number (1-9) or 'exit'.` }]);
+        }
+        return;
+    }
+
+    if (gameMode === 'guess-the-number') {
+        handleGuess(lowerCaseCommand);
+        return;
+    }
+
+    if (lowerCaseCommand === 'start' && history.length === 0) {
+      await startInterview();
+      return;
+    }
+
+    if (history.length === 0 && lowerCaseCommand !== 'start') {
+        setLines(prev => [...prev, { type: 'error', content: `Type 'start' to begin.` }]);
+        return;
+    }
+
+    const userMessage: Message = { role: 'user', content: lowerCaseCommand };
+    
+    setLines(prev => [...prev, { type: 'output', content: "AI is typing..." }]);
+    setIsProcessing(true);
+
+    const newHistory = [...history, userMessage];
+    setHistory(newHistory);
+    
+    const result = await handleInterview({
+        cvContent: JSON.stringify(cvContent),
+        history: newHistory,
+    });
+    
+    const assistantMessage: Message = { role: 'model', content: result.response };
+    setHistory(prev => [...prev, assistantMessage]);
+
+    setLines(prev => {
+        const currentLines = [...prev];
+        const typingIndex = currentLines.findLastIndex(line => line.content === "AI is typing...");
+        if (typingIndex !== -1) {
+            currentLines[typingIndex] = { type: 'output', content: result.response };
+        } else {
+             currentLines.push({ type: 'output', content: result.response });
+        }
+        return currentLines;
+    });
+
+    setIsProcessing(false);
+  }, [gameMode, history, cvContent, currentPacket, score, board, secretNumber, guesses]);
   
   useEffect(() => {
     if (!initialMessageDisplayed) {
       setLines([
         { type: 'system', content: `Dickens Okoth Otieno's Desktop v1.0` },
-        { type: 'system', content: `Type 'start' to begin your interview, or type 'play [game_name]' to play a game.` },
-        { type: 'system', content: `Available games: firewall-defender, tic-tac-toe, guess-the-number` },
+        { type: 'system', content: `Type 'start' to begin your interview.` },
       ]);
       setInitialMessageDisplayed(true);
+      if (initialCommand) {
+          processCommand(initialCommand);
+      }
     }
-  }, [initialMessageDisplayed]);
+  }, [initialMessageDisplayed, initialCommand, processCommand]);
 
 
   useEffect(scrollToBottom, [lines]);
@@ -325,99 +423,8 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: string) => void; cv
   
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isProcessing) return;
-
-    const command = input.trim().toLowerCase();
-    setLines(prev => [...prev, { type: 'input', content: command }]);
-    setInput('');
-    
-    if (command.startsWith('play ')) {
-        const game = command.split(' ')[1];
-        if (game === 'firewall-defender') {
-            startFirewallGame();
-            return;
-        }
-        if (game === 'tic-tac-toe') {
-          startTicTacToe();
-          return;
-        }
-        if (game === 'guess-the-number') {
-            startGuessTheNumber();
-            return;
-        }
-    }
-
-    if (command === 'exit') {
-        if (gameMode !== 'interview') {
-            exitGame();
-        } else {
-             setLines(prev => [...prev, { type: 'error', content: `Not in a game. Cannot exit.` }]);
-        }
-        return;
-    }
-    
-    if (gameMode === 'firewall-defender') {
-        if (command === 'allow' || command === 'deny') {
-            handleFirewallGuess(command);
-        } else {
-            setLines(prev => [...prev, { type: 'error', content: `Unknown command in game mode. Type 'allow', 'deny', or 'exit'.` }]);
-        }
-        return;
-    }
-    
-    if (gameMode === 'tic-tac-toe') {
-        const move = parseInt(command, 10);
-        if (!isNaN(move)) {
-            handleTicTacToeMove(move);
-        } else {
-            setLines(prev => [...prev, { type: 'error', content: `Unknown command. Enter a number (1-9) or 'exit'.` }]);
-        }
-        return;
-    }
-
-    if (gameMode === 'guess-the-number') {
-        handleGuess(command);
-        return;
-    }
-
-    if (command === 'start' && history.length === 0) {
-      await startInterview();
-      return;
-    }
-
-    if (history.length === 0 && command !== 'start') {
-        setLines(prev => [...prev, { type: 'error', content: `Type 'start' to begin.` }]);
-        return;
-    }
-
-    const userMessage: Message = { role: 'user', content: command };
-    
-    setLines(prev => [...prev, { type: 'output', content: "AI is typing..." }]);
-    setIsProcessing(true);
-
-    const newHistory = [...history, userMessage];
-    setHistory(newHistory);
-    
-    const result = await handleInterview({
-        cvContent: JSON.stringify(cvContent),
-        history: newHistory,
-    });
-    
-    const assistantMessage: Message = { role: 'model', content: result.response };
-    setHistory(prev => [...prev, assistantMessage]);
-
-    setLines(prev => {
-        const currentLines = [...prev];
-        const typingIndex = currentLines.findLastIndex(line => line.content === "AI is typing...");
-        if (typingIndex !== -1) {
-            currentLines[typingIndex] = { type: 'output', content: result.response };
-        } else {
-             currentLines.push({ type: 'output', content: result.response });
-        }
-        return currentLines;
-    });
-
-    setIsProcessing(false);
+    if (isProcessing) return;
+    processCommand(input);
   };
 
   return (
@@ -461,13 +468,27 @@ export default function Desktop() {
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
   const [cvContent, setCvContent] = useState<CvContent>(initialCvContent);
   const zIndexCounter = useRef(10);
+  const [terminalInitialCommand, setTerminalInitialCommand] = useState<string | undefined>(undefined);
 
   const handleContentUpdate = (newContent: Partial<CvContent>) => {
     setCvContent(prev => ({ ...prev, ...newContent }));
   }
 
   const openApp = useCallback((appId: string) => {
-    // Check if a window for this app is already open
+    const isTerminalGame = GAME_APPS.some(game => game.id === appId && game.isTerminal);
+
+    if (isTerminalGame) {
+        setTerminalInitialCommand(`play ${appId.replace('-game', '')}`);
+        
+        const terminalWindow = windows.find(w => w.appId === 'terminal');
+        if (terminalWindow) {
+            focusWindow(terminalWindow.id);
+        } else {
+            openApp('terminal');
+        }
+        return;
+    }
+      
     const existingWindow = windows.find(w => w.appId === appId);
     if (existingWindow) {
       focusWindow(existingWindow.id);
@@ -492,6 +513,14 @@ export default function Desktop() {
     setActiveWindow(newWindow.id);
   }, [windows]);
 
+  useEffect(() => {
+      // Clear the initial command after the terminal window has been created/focused
+      if (terminalInitialCommand && windows.some(w => w.appId === 'terminal')) {
+          const timer = setTimeout(() => setTerminalInitialCommand(undefined), 100);
+          return () => clearTimeout(timer);
+      }
+  }, [windows, terminalInitialCommand])
+
   const closeWindow = (id: string) => {
     setWindows(prev => prev.filter(w => w.id !== id));
     if (activeWindow === id) {
@@ -510,28 +539,28 @@ export default function Desktop() {
     setActiveWindow(id);
   };
   
-  const renderWindowContent = (appId: WindowInstance['appId']) => {
+  const renderWindowContent = (win: WindowInstance) => {
     const allApps = [...APPS, ...GAME_APPS];
-    const app = allApps.find(a => a.id === appId);
+    const app = allApps.find(a => a.id === win.appId);
     if (!app) return null;
 
-    if (appId === 'terminal') {
-      return <Terminal openApp={openApp} cvContent={cvContent} />;
+    if (win.appId === 'terminal') {
+        return <Terminal openApp={openApp} cvContent={cvContent} initialCommand={terminalInitialCommand} />;
     }
     
-    if (appId === 'games') {
+    if (win.appId === 'games') {
       return <app.component openApp={openApp} />;
     }
 
-    if (appId === 'about') {
+    if (win.appId === 'about') {
         return <app.component content={cvContent} onSave={(newAbout: string) => handleContentUpdate({ about: newAbout })} />;
     }
     
-    if (appId === 'resume') {
+    if (win.appId === 'resume') {
         return <app.component content={cvContent} onSave={(newResume: CvContent['resume']) => handleContentUpdate({ resume: newResume })} />;
     }
 
-    if (appId === 'projects') {
+    if (win.appId === 'projects') {
         return <app.component content={cvContent} onSave={(newProjects: Project[]) => handleContentUpdate({ projects: newProjects })} />;
     }
     
@@ -571,9 +600,11 @@ export default function Desktop() {
           onClose={() => closeWindow(win.id)}
           onFocus={() => focusWindow(win.id)}
         >
-          {renderWindowContent(win.appId)}
+          {renderWindowContent(win)}
         </Window>
       ))}
     </div>
   );
 }
+
+    

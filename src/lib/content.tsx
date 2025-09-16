@@ -1,3 +1,4 @@
+
 import type { App, CvContent, Project } from './types';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ const GamepadIcon = () => (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect width="64" height="64" rx="8" fill="#2A2A2A"/>
         <path d="M24 30H18V36H24V30Z" fill="#4ade80"/>
-        <path d="M21 27V39" stroke="#4ade80" stroke-width="2"/>
+        <path d="M21 27V39" stroke="#4ade80" strokeWidth="2"/>
         <circle cx="40" cy="36" r="3" fill="#4ade80"/>
         <circle cx="46" cy="30" r="3" fill="#4ade80"/>
     </svg>
@@ -350,7 +351,10 @@ const GamesFolderContent = ({ openApp }: { openApp: (appId: string) => void }) =
 const PlaceholderTerminal = () => React.Fragment;
 
 export const GAME_APPS: App[] = [
-    { id: 'css-invaders', name: 'CSS Invaders', icon: <GamepadIcon />, component: CSSInvaders },
+    { id: 'css-invaders', name: 'CSS Invaders', icon: <GamepadIcon />, component: CSSInvaders, isTerminal: false },
+    { id: 'firewall-defender-game', name: 'Firewall Defender', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
+    { id: 'tic-tac-toe-game', name: 'Tic-Tac-Toe', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
+    { id: 'guess-the-number-game', name: 'Guess The Number', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
 ];
 
 export const APPS: App[] = [
@@ -361,3 +365,5 @@ export const APPS: App[] = [
     { id: 'terminal', name: 'Terminal', icon: <TerminalAppIcon />, component: PlaceholderTerminal },
     { id: 'games', name: 'Games', icon: <FolderIcon />, component: GamesFolderContent },
 ];
+
+    
