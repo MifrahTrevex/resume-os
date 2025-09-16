@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
@@ -61,7 +62,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     const command = input.trim();
     const userMessage: Message = { role: 'user', content: command };
     
-    setLines(prev => [...prev, { type: 'input', content: command }]);
+    setLines(prev => [...prev, { type: 'input', content: command }, { type: 'output', content: "AI is typing..." }]);
     setInput('');
     setIsProcessing(true);
 
@@ -75,7 +76,18 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     
     const assistantMessage: Message = { role: 'model', content: result.response };
     setHistory(prev => [...prev, assistantMessage]);
-    setLines(prev => [...prev, { type: 'output', content: result.response }]);
+
+    setLines(prev => {
+        const newLines = [...prev];
+        // Replace the "typing" message with the actual response
+        const typingIndex = newLines.findLastIndex(line => line.content === "AI is typing...");
+        if (typingIndex !== -1) {
+            newLines[typingIndex] = { type: 'output', content: result.response };
+        } else {
+             newLines.push({ type: 'output', content: result.response });
+        }
+        return newLines;
+    });
 
     setIsProcessing(false);
   };
@@ -86,7 +98,9 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
         {lines.map((line, index) => (
           <div key={index} className="flex gap-2">
             {line.type === 'input' && <span className="text-accent">$</span>}
-            <p className={line.type === 'error' ? 'text-destructive' : ''}>{line.content}</p>
+            <p className={`${line.type === 'error' ? 'text-destructive' : ''} ${line.content === 'AI is typing...' ? 'italic text-muted-foreground' : ''}`}>
+              {line.content}
+            </p>
           </div>
         ))}
         <div ref={endOfTerminalRef} />
