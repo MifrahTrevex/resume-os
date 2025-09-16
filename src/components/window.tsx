@@ -74,20 +74,20 @@ export default function Window({ title, children, onClose, onFocus, zIndex, init
   return (
     <div
       ref={windowRef}
-      className={`absolute flex flex-col bg-card border-2 border-t-white/20 border-l-white/20 border-b-black/50 border-r-black/50 shadow-2xl ${isMaximized ? 'rounded-none' : 'rounded-sm'}`}
+      className={`absolute flex flex-col bg-card border-2 border-border shadow-2xl ${isMaximized ? 'rounded-none' : 'rounded-sm'}`}
       style={windowStyles}
       onMouseDown={onFocus}
     >
       <div
         ref={handleRef}
-        className={`flex items-center justify-between p-1 bg-gradient-to-b from-primary to-blue-700 ${isMaximized ? 'rounded-none' : 'rounded-t-sm'} cursor-grab active:cursor-grabbing`}
+        className={`flex items-center justify-between p-1 bg-gradient-to-b from-primary/80 to-primary/50 ${isMaximized ? 'rounded-none' : 'rounded-t-sm'} cursor-grab active:cursor-grabbing`}
         onDoubleClick={handleMaximizeToggle}
       >
         <span className="text-sm font-bold text-primary-foreground select-none ml-1">{title}</span>
         <div className="flex items-center gap-1">
-          <button className="p-1 rounded-sm transition-colors bg-card/50 hover:bg-card/80"><Minus size={14} className="text-primary-foreground" /></button>
+          <button className="p-1 rounded-sm transition-colors bg-card/50 hover:bg-card/80"><Minus size={14} className="text-foreground" /></button>
           <button onClick={handleMaximizeToggle} className="p-1 rounded-sm transition-colors bg-card/50 hover:bg-card/80">
-            {isMaximized ? <ChevronsDownUp size={14} className="text-primary-foreground" /> : <Square size={14} className="text-primary-foreground" />}
+            {isMaximized ? <ChevronsDownUp size={14} className="text-foreground" /> : <Square size={14} className="text-foreground" />}
           </button>
           <button onClick={onClose} className="p-1 rounded-sm transition-colors bg-red-500/80 hover:bg-red-500">
             <X size={14} className="text-primary-foreground" />
