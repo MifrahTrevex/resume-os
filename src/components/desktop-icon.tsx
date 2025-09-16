@@ -1,3 +1,4 @@
+
 import { useDraggableIcon } from "@/hooks/use-draggable-icon";
 import { cn } from "@/lib/utils";
 import { useRef, type MouseEvent } from "react";
@@ -35,7 +36,7 @@ export default function DesktopIcon({ icon, name, onClick, onContextMenu }: Desk
       )}
     >
       <div className="w-16 h-16 flex items-center justify-center pointer-events-none">{icon}</div>
-      <span className="text-sm select-none pointer-events-none bg-transparent">{name}</span>
+      <span className="text-sm select-none pointer-events-none">{name}</span>
     </button>
   );
 }

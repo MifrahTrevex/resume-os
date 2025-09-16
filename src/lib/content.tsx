@@ -16,46 +16,63 @@ import { Badge } from '@/components/ui/badge';
 import type { PersonalInfo } from './types';
 import { Switch } from '@/components/ui/switch';
 
-const FileIcon = ({ colorClass = "text-primary/70" }: { colorClass?: string }) => (
+const FileIcon = ({ colorClass = "text-primary/70", type = 'file' }: { colorClass?: string, type?: 'file' | 'pdf' }) => (
     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={`s-6 w-16 h-16 ${colorClass}`}>
-        <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity="0.1"/>
-        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M16 13H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        <path d="M16 17H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        <path d="M10 9H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <defs>
+            <clipPath id="clip0_806_2">
+                <rect width="24" height="24" fill="white"/>
+            </clipPath>
+        </defs>
+        <g clipPath="url(#clip0_806_2)">
+            <path d="M4 2L4 22L20 22L20 8L14 2L4 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+            <path d="M14 2L14 8L20 8" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+            <path d="M11 14L8 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M16 14L13 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M11 18L8 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M16 18L13 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </g>
+         <path d="M14 2L4 2L4 22L20 22L20 8M14 2L20 8M14 2V8H20" fill="currentColor" fillOpacity={0.1}/>
+         {type === 'pdf' && (
+            <text x="50%" y="60%" dominantBaseline="middle" textAnchor="middle" fontSize="6" fontWeight="bold" fill="currentColor">
+                PDF
+            </text>
+        )}
     </svg>
 );
 
+
 const FolderIcon = () => (
-    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-primary/70">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-primary/80">
         <path d="M3 20V4C3 2.89543 3.89543 2 5 2H9.37868C9.75704 2 10.1226 2.11333 10.4239 2.3219L12.4239 3.6781C12.7252 3.88667 13.0908 4 13.4691 4H19C20.1046 4 21 4.89543 21 6V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M10.1818 16.5455L12 14M12 14L13.8182 11.4545M12 14L10.1818 11.4545M12 14L13.8182 16.5455" stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M3 20V9C3 7.89543 3.89543 7 5 7H19C20.1046 7 21 7.89543 21 9V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity="0.1"/>
     </svg>
 );
 
 
 const TerminalAppIcon = () => (
-    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16">
-        <rect x="2" y="2" width="20" height="20" rx="2" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="hsl(var(--primary))" fillOpacity="0.1"/>
-        <path d="M6 9.5L10 12.5L6 15.5" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M12 15.5H18" stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeLinecap="round"/>
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-primary/80">
+        <path d="M4 2L4 22L20 22L20 8L14 2L4 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" fill="currentColor" fillOpacity="0.1"/>
+        <path d="M14 2L14 8L20 8" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+        <path d="M7 14L9 16L7 18" stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M12 18H17" stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
 );
 
 const GamepadIcon = () => (
-     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16">
+     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-primary/80">
         <path d="M9.88246 3.99997L13.2303 3.39313C17.0621 2.7037 20.242 5.92383 19.6053 9.72083L19.0606 13.1165L14.0738 12.0127L14.6185 8.61704C15.0211 6.279 13.2828 4.2208 10.9268 4.02082L9.88246 3.99997Z" stroke="hsl(var(--foreground))" strokeWidth="1.5"/>
-        <path d="M12.9159 20.5186L9.56804 21.1254C5.73628 21.8149 2.55648 18.5947 3.19321 14.7977L4.25431 8.24285C4.89104 4.44585 9.15783 2.50379 12.2227 5.06452L14.0738 6.64998L19.0606 7.75375L12.9159 20.5186Z" stroke="hsl(var(--primary))" strokeWidth="1.5" fill="hsl(var(--primary))" fillOpacity="0.1"/>
+        <path d="M12.9159 20.5186L9.56804 21.1254C5.73628 21.8149 2.55648 18.5947 3.19321 14.7977L4.25431 8.24285C4.89104 4.44585 9.15783 2.50379 12.2227 5.06452L14.0738 6.64998L19.0606 7.75375L12.9159 20.5186Z" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.1"/>
         <path d="M19.0607 13.1165L14.0739 12.0127L9.0871 13.1165L12.9159 20.5186L19.6054 9.72083C20.2421 5.92383 17.0622 2.7037 13.2304 3.39313L12.75 3.5" stroke="hsl(var(--foreground))" strokeWidth="1.5"/>
     </svg>
 );
 
 const AdminIcon = () => (
-     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-foreground/70">
-        <path d="M19 10C21.2091 10 23 8.20914 23 6C23 3.79086 21.2091 2 19 2C16.7909 2 15 3.79086 15 6C15 8.20914 16.7909 10 19 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M5 22C7.20914 22 9 20.2091 9 18C9 15.7909 7.20914 14 5 14C2.79086 14 1 15.7909 1 18C1 20.2091 2.79086 22 5 22Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M14 6L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M10 18L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-primary/80">
+        <path d="M19 10C21.2091 10 23 8.20914 23 6C23 3.79086 21.2091 2 19 2C16.7909 2 15 3.79086 15 6C15 8.20914 16.7909 10 19 10Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity={0.1}/>
+        <path d="M5 22C7.20914 22 9 20.2091 9 18C9 15.7909 7.20914 14 5 14C2.79086 14 1 15.7909 1 18C1 20.2091 2.79086 22 5 22Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity={0.1}/>
+        <path d="M14 6L10 6" stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M10 18L10 6" stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
 );
 
@@ -777,8 +794,8 @@ export const initialGameApps: App[] = [
 ];
 
 export const ALL_APPS: (cvContent: CvContent, games: App[], onGameToggle: (gameId: string) => void) => App[] = (cvContent, games, onGameToggle) => [
-    { id: 'about', name: 'About.txt', icon: <FileIcon colorClass="text-foreground/70" />, component: (props: any) => <AboutContent {...props} content={cvContent} /> },
-    { id: 'resume', name: 'Resume.pdf', icon: <FileIcon colorClass="text-destructive/70" />, component: (props: any) => <ResumeContent {...props} content={cvContent} /> },
+    { id: 'about', name: 'About.me', icon: <FileIcon colorClass="text-foreground/70" />, component: (props: any) => <AboutContent {...props} content={cvContent} /> },
+    { id: 'resume', name: 'Resume.pdf', icon: <FileIcon colorClass="text-destructive/80" type="pdf"/>, component: (props: any) => <ResumeContent {...props} content={cvContent} /> },
     { id: 'projects', name: 'Projects', icon: <FolderIcon />, component: (props: any) => <ProjectsContent {...props} content={cvContent} /> },
     { id: 'contact', name: 'Contact', icon: <FolderIcon />, component: () => <ContactContent content={cvContent} /> },
     { id: 'personal', name: 'Personal', icon: <FolderIcon />, component: PersonalFolderContent },
@@ -788,7 +805,7 @@ export const ALL_APPS: (cvContent: CvContent, games: App[], onGameToggle: (gameI
     { id: 'games', name: 'Games', icon: <FolderIcon />, component: (props: any) => <GamesFolderContent {...props} games={games} /> },
     ...games.map(g => ({...g, isFolderContent: true, parentId: 'games'})),
     { id: 'game-manager', name: 'Game Manager', icon: <AdminIcon />, component: () => <GameManagerContent games={games} onToggle={onGameToggle} /> },
-    { id: 'task-manager', name: 'Task Manager', icon: <TaskManagerIcon />, component: PlaceholderTerminal },
+    { id: 'task-manager', name: 'Task Manager', icon: <TaskManagerIcon />, component: TaskManager },
 ].filter((app, index, self) => index === self.findIndex((t) => (t.id === app.id)));
 
     

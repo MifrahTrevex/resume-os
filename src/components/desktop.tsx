@@ -725,23 +725,24 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
   const [itemToRename, setItemToRename] = useState<App | null>(null);
   const [newItemName, setNewItemName] = useState('');
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item?: App } | null>(null);
+  
+   const allApps = useRef(ALL_APPS(cvContent, gameApps, handleGameToggle));
 
    useEffect(() => {
-    if (powerState === 'confirming') {
-        setInternalPowerState('confirming');
-    }
-   }, [powerState]);
-
-
-   useEffect(() => {
-    const generatedApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
-    let finalApps = generatedApps.filter(app => app.id !== 'task-manager');
+    allApps.current = ALL_APPS(cvContent, gameApps, handleGameToggle);
+    let finalApps = allApps.current.filter(app => !app.isFolderContent);
      if (!isAuthenticated) {
       finalApps = finalApps.filter(app => app.id !== 'game-manager');
     }
     
     setApps(finalApps);
   }, [cvContent, gameApps, isAuthenticated]);
+
+   useEffect(() => {
+    if (powerState === 'confirming') {
+        setInternalPowerState('confirming');
+    }
+   }, [powerState]);
 
   useEffect(() => {
     if (booting) {
@@ -840,7 +841,7 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
         const newFolder: App = {
             id: `folder-${Date.now()}`,
             name: newItemName,
-            icon: ALL_APPS(cvContent, gameApps, handleGameToggle).find(a => a.id === 'personal')!.icon, // Reuse folder icon
+            icon: allApps.current.find(a => a.id === 'personal')!.icon, // Reuse folder icon
             component: () => <div className="p-4">This folder is empty.</div>,
         };
         setApps(prev => [...prev, newFolder]);
@@ -848,12 +849,15 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
         setNewItemName('');
     };
 
-
-
   const openApp = useCallback((appId: string, options?: { parentId: string }) => {
-    const allApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
-    const app = allApps.find(a => a.id === appId);
+    const app = allApps.current.find(a => a.id === appId);
     if (!app) return;
+
+    const existingWindow = windows.find(w => w.appId === appId);
+    if (existingWindow) {
+        focusWindow(existingWindow.id);
+        return;
+    }
 
     // Handle opening an item within a folder
     if (options?.parentId) {
@@ -880,7 +884,7 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
         if (terminalWindow) {
             focusWindow(terminalWindow.id);
         } else {
-            const terminalApp = allApps.find(a => a.id === 'terminal');
+            const terminalApp = allApps.current.find(a => a.id === 'terminal');
              if (!terminalApp) return;
 
             const newZIndex = zIndexCounter.current + 1;
@@ -901,12 +905,6 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
         return;
     }
       
-    const existingWindow = windows.find(w => w.appId === appId && (!w.history.length || w.history[w.history.length -1] === appId));
-    if (existingWindow) {
-      focusWindow(existingWindow.id);
-      return;
-    }
-
     const newZIndex = zIndexCounter.current + 1;
     zIndexCounter.current = newZIndex;
     const newWindow: WindowInstance = {
@@ -986,8 +984,7 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
 
 
   const renderWindowContent = (win: WindowInstance) => {
-    const allApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
-    const app = allApps.find(a => a.id === win.appId);
+    const app = allApps.current.find(a => a.id === win.appId);
     if (!app) return null;
 
     if (win.appId === 'terminal') {
@@ -1006,18 +1003,15 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
   };
   
   const getWindowTitle = (win: WindowInstance) => {
-    const allApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
     if (!win.history || win.history.length <= 1) {
-        return allApps.find(a => a.id === win.appId)?.name || 'Window';
+        return allApps.current.find(a => a.id === win.appId)?.name || 'Window';
     }
     return win.history
-        .map(appId => allApps.find(a => a.id === appId)?.name)
+        .map(appId => allApps.current.find(a => a.id === appId)?.name)
         .filter(Boolean)
         .join(' > ');
   };
 
-
-  const desktopApps = apps.filter(app => !app.isFolderContent);
 
    if (booting) {
         return <BootScreen />;
@@ -1028,7 +1022,7 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
             <div className="w-full h-full bg-black flex flex-col items-center justify-center text-center p-4">
                 <p className="text-foreground font-code text-2xl animate-pulse mb-8">{powerMessage}</p>
                  {internalPowerState === 'off' && (
-                    <Button onClick={handlePowerOn} variant="primary" size="lg">
+                    <Button onClick={handlePowerOn} variant="default" size="lg">
                         <Power className="mr-2" /> Power On
                     </Button>
                 )}
@@ -1119,7 +1113,7 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
 
       <div className="relative w-full h-[calc(100%-40px)] p-4 overflow-hidden">
         <div className="flex flex-col flex-wrap h-full content-start">
-            {desktopApps.map((app) => (
+            {apps.map((app) => (
               <DesktopIcon
                 key={app.id}
                 name={app.name}
@@ -1148,7 +1142,7 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
       ))}
       <Taskbar
         windows={windows}
-        apps={ALL_APPS(cvContent, gameApps, handleGameToggle)}
+        apps={allApps.current}
         onTaskbarClick={handleTaskbarClick}
         onWindowClose={closeWindow}
         activeWindowId={activeWindow}
