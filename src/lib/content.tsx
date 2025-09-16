@@ -14,7 +14,6 @@ import HackerClicker from '@/components/hacker-clicker';
 import SystemOverride from '@/components/system-override';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
 
 const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -103,7 +102,7 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
             <div className="p-4 h-full flex flex-col">
                 <Card className="bg-card/50">
                     <CardHeader className="items-center text-center">
-                        <Image
+                        <img
                             src="https://storage.googleapis.com/aifirebase-773b0.appspot.com/images/passport_style_photo.png"
                             alt="Profile Picture"
                             width={128}
