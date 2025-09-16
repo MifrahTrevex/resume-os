@@ -23,7 +23,7 @@ type Message = {
     content: string;
 };
 
-type GameMode = 'interview' | 'firewall-defender';
+type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe';
 
 const firewallRules = [
     "Rule 1: Deny all traffic from IP 192.168.1.100 (Known malicious actor).",
@@ -73,7 +73,6 @@ function generatePacket(): Packet {
     return { sourceIp, port, type: randomType, isMalicious };
 }
 
-
 function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' | 'projects' | 'contact') => void; cvContent: CvContent }) {
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [history, setHistory] = useState<Message[]>([]);
@@ -82,10 +81,14 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
   const endOfTerminalRef = useRef<HTMLDivElement>(null);
   const [initialMessageDisplayed, setInitialMessageDisplayed] = useState(false);
   const [gameMode, setGameMode] = useState<GameMode>('interview');
+  
+  // Firewall Defender State
   const [score, setScore] = useState(0);
   const [currentPacket, setCurrentPacket] = useState<Packet | null>(null);
 
-
+  // Tic-Tac-Toe State
+  const [board, setBoard] = useState<( 'X' | 'O' | null)[]>(Array(9).fill(null));
+  
   const scrollToBottom = () => {
     endOfTerminalRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -94,7 +97,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     if (!initialMessageDisplayed) {
       setLines([
         { type: 'system', content: `Dickens Okoth Otieno's Desktop v1.0` },
-        { type: 'system', content: `Type 'start' to begin your interview, or type 'play firewall-defender' to play a game.` },
+        { type: 'system', content: `Type 'start' to begin your interview, or type 'play firewall-defender' or 'play tic-tac-toe' to play a game.` },
       ]);
       setInitialMessageDisplayed(true);
     }
@@ -124,6 +127,19 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     setIsProcessing(false);
   }, [cvContent]);
   
+  const exitGame = () => {
+      setGameMode('interview');
+      setCurrentPacket(null);
+      setBoard(Array(9).fill(null));
+      setHistory([]);
+      setLines(prev => [
+          ...prev,
+          { type: 'system', content: 'Exited game. Returning to interview mode.' },
+          { type: 'system', content: `Type 'start' to begin your interview.` }
+      ]);
+  }
+
+  // --- Firewall Defender Logic ---
   const startFirewallGame = () => {
       setGameMode('firewall-defender');
       setScore(0);
@@ -177,15 +193,91 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
       }
   }
 
-  const exitGame = () => {
-      setGameMode('interview');
-      setCurrentPacket(null);
-      setHistory([]);
-      setLines(prev => [
-          ...prev,
-          { type: 'system', content: 'Exited game. Returning to interview mode.' },
-          { type: 'system', content: `Type 'start' to begin your interview.` }
-      ]);
+  // --- Tic-Tac-Toe Logic ---
+  const startTicTacToe = () => {
+    setGameMode('tic-tac-toe');
+    setBoard(Array(9).fill(null));
+    setLines(prev => [
+      ...prev,
+      { type: 'system', content: 'Starting Tic-Tac-Toe...' },
+      { type: 'system', content: 'You are X. The computer is O.' },
+      { type: 'system', content: 'Enter a number from 1 to 9 to make your move.' },
+      { type: 'system', content: "Type 'exit' to quit." },
+    ]);
+    displayBoard(Array(9).fill(null));
+  };
+
+  const displayBoard = (currentBoard: ( 'X' | 'O' | null)[]) => {
+    const boardStr = [0, 1, 2].map(row => 
+        [0, 1, 2].map(col => {
+            const i = row * 3 + col;
+            return currentBoard[i] || (i + 1);
+        }).join(' | ')
+    ).join('\n--+---+--\n');
+
+    setLines(prev => [...prev, { type: 'output', content: `\n${boardStr}\n` }]);
+  };
+
+  const checkWinner = (currentBoard: ( 'X' | 'O' | null)[]) => {
+    const lines = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+      [0, 4, 8], [2, 4, 6]             // diagonals
+    ];
+    for (let i = 0; i < lines.length; i++) {
+      const [a, b, c] = lines[i];
+      if (currentBoard[a] && currentBoard[a] === currentBoard[b] && currentBoard[a] === currentBoard[c]) {
+        return currentBoard[a];
+      }
+    }
+    return currentBoard.every(cell => cell) ? 'draw' : null;
+  };
+
+  const handleTicTacToeMove = (move: number) => {
+    if (move < 1 || move > 9 || board[move - 1]) {
+      setLines(prev => [...prev, { type: 'error', content: 'Invalid move. Pick an empty square from 1 to 9.' }]);
+      return;
+    }
+    
+    let newBoard = [...board];
+    newBoard[move - 1] = 'X';
+
+    let winner = checkWinner(newBoard);
+    if (winner) {
+      endTicTacToe(winner, newBoard);
+      return;
+    }
+
+    // Computer's turn
+    const emptySquares = newBoard.map((v, i) => v === null ? i : null).filter(v => v !== null);
+    if (emptySquares.length > 0) {
+        const computerMove = emptySquares[Math.floor(Math.random() * emptySquares.length)]!;
+        newBoard[computerMove] = 'O';
+    }
+    
+    setBoard(newBoard);
+    displayBoard(newBoard);
+
+    winner = checkWinner(newBoard);
+    if (winner) {
+      endTicTacToe(winner, newBoard);
+    }
+  };
+
+  const endTicTacToe = (winner: string, finalBoard: ( 'X' | 'O' | null)[]) => {
+    displayBoard(finalBoard);
+    let message = '';
+    if (winner === 'draw') {
+      message = "It's a draw!";
+    } else {
+      message = `${winner} wins!`;
+    }
+    setLines(prev => [
+      ...prev,
+      { type: 'system', content: `--- GAME OVER ---` },
+      { type: 'system', content: message },
+    ]);
+    setTimeout(exitGame, 1000);
   }
   
   const handleSubmit = async (e: FormEvent) => {
@@ -201,6 +293,11 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
         startFirewallGame();
         return;
     }
+
+    if (command === 'play tic-tac-toe') {
+      startTicTacToe();
+      return;
+    }
     
     if (gameMode === 'firewall-defender') {
         if (command === 'allow' || command === 'deny') {
@@ -212,6 +309,18 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
         }
         return;
     }
+    
+    if (gameMode === 'tic-tac-toe') {
+        const move = parseInt(command, 10);
+        if (!isNaN(move)) {
+            handleTicTacToeMove(move);
+        } else if (command === 'exit') {
+            exitGame();
+        } else {
+            setLines(prev => [...prev, { type: 'error', content: `Unknown command. Enter a number (1-9) or 'exit'.` }]);
+        }
+        return;
+    }
 
     if (command === 'start' && history.length === 0) {
       setLines(prev => [...prev, { type: 'output', content: "AI is typing..." }]);
@@ -219,7 +328,10 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
       return;
     }
 
-    if (history.length === 0) return;
+    if (history.length === 0 && command !== 'start') {
+        setLines(prev => [...prev, { type: 'error', content: `Type 'start' to begin.` }]);
+        return;
+    }
 
     const userMessage: Message = { role: 'user', content: command };
     
@@ -271,7 +383,11 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           className="bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground font-code flex-grow"
-          placeholder={gameMode === 'firewall-defender' ? `Type 'allow' or 'deny'...` : 'Type your response...'}
+          placeholder={
+            gameMode === 'firewall-defender' ? `Type 'allow' or 'deny'...` :
+            gameMode === 'tic-tac-toe' ? `Enter your move (1-9)...` :
+            'Type your response...'
+          }
           autoFocus
           disabled={isProcessing}
         />
@@ -397,5 +513,3 @@ export default function Desktop() {
     </div>
   );
 }
-
-    
