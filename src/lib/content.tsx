@@ -336,18 +336,34 @@ const ContactContent = ({ content }: { content: CvContent }) => (
     </div>
 );
 
-const GamesFolderContent = ({ openApp }: { openApp: (appId: string) => void }) => (
-    <div className="p-4 grid grid-cols-4 gap-4">
-        {GAME_APPS.map(app => (
-            <DesktopIcon
-                key={app.id}
-                name={app.name}
-                icon={app.icon}
-                onClick={() => openApp(app.id)}
-            />
-        ))}
-    </div>
-);
+const GamesFolderContent = ({ openApp }: { openApp: (appId: string) => void }) => {
+    const ICONS_PER_ROW = 4;
+    const ICON_WIDTH = 96; // Corresponds to w-24
+    const ICON_HEIGHT = 96; // Corresponds to h-24
+    const PADDING = 16; // Corresponds to p-4
+
+    return (
+        <div className="relative p-4 h-full w-full">
+            {GAME_APPS.map((app, index) => {
+                const row = Math.floor(index / ICONS_PER_ROW);
+                const col = index % ICONS_PER_ROW;
+                const initialPosition = {
+                    x: col * (ICON_WIDTH + PADDING) + PADDING,
+                    y: row * (ICON_HEIGHT + PADDING) + PADDING,
+                };
+                return (
+                    <DesktopIcon
+                        key={app.id}
+                        name={app.name}
+                        icon={app.icon}
+                        onClick={() => openApp(app.id)}
+                        initialPosition={initialPosition}
+                    />
+                );
+            })}
+        </div>
+    );
+};
 
 
 const PlaceholderTerminal = () => React.Fragment;
