@@ -69,6 +69,7 @@ export type CvContent = {
   personalInfo: PersonalInfo;
   about: string;
   interests: string[];
+  details: string[];
   resume: ResumeContent;
   projects: Project[];
 };

@@ -9,7 +9,6 @@ import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check, ExternalLink, Plus, Edit, Settings } from 'lucide-react';
 import CSSInvaders from '@/components/css-invaders';
-import DesktopIcon from '@/components/desktop-icon';
 import HackerClicker from '@/components/hacker-clicker';
 import SystemOverride from '@/components/system-override';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,6 +89,10 @@ export const initialCvContent: CvContent = {
         "Playing strategy and puzzle-based video games.",
         "Reading articles on cybersecurity and digital forensics.",
         "Listening to tech podcasts.",
+    ],
+    details: [
+        "Nationality: Kenyan",
+        "Country: Kenya",
     ],
     resume: {
         experience: [
@@ -630,8 +633,53 @@ const InterestsContent = ({ content, onSave }: { content: CvContent; onSave: (ne
     );
 };
 
+const DetailsContent = ({ content, onSave }: { content: CvContent; onSave: (newDetails: { details: string[] }) => void }) => {
+    const { isAuthenticated } = useAuth();
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [details, setDetails] = React.useState(content.details.join('\n'));
 
-const GamesFolderContent = React.memo(({ openApp, games }: { openApp: (appId: string) => void; games: App[] }) => {
+    const handleSave = () => {
+        onSave({ details: details.split('\n').filter(line => line.trim() !== '') });
+        setIsEditing(false);
+    };
+
+    return (
+        <ScrollArea className="h-full">
+            <div className="p-4 space-y-4">
+                 <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-lg font-bold font-headline text-foreground">Personal Details</h2>
+                    {isAuthenticated && !isEditing && (
+                        <Button onClick={() => setIsEditing(true)} size="sm" variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit</Button>
+                    )}
+                    {isAuthenticated && isEditing && (
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                            <Button onClick={handleSave}>Save</Button>
+                        </div>
+                    )}
+                </div>
+                
+                {isEditing && isAuthenticated ? (
+                    <Textarea 
+                        value={details}
+                        onChange={(e) => setDetails(e.target.value)}
+                        className="h-48"
+                        placeholder="Enter each detail on a new line."
+                    />
+                ) : (
+                    <ul className="list-disc list-inside space-y-1">
+                        {content.details.map((detail, index) => (
+                            <li key={index}>{detail}</li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        </ScrollArea>
+    );
+};
+
+
+const GamesFolderContent = ({ openApp, games }: { openApp: (appId: string) => void; games: App[] }) => {
     const { isAuthenticated } = useAuth();
     const visibleGames = isAuthenticated ? games : games.filter(g => g.active);
 
@@ -654,8 +702,7 @@ const GamesFolderContent = React.memo(({ openApp, games }: { openApp: (appId: st
             ))}
         </div>
     );
-});
-GamesFolderContent.displayName = 'GamesFolderContent';
+};
 
 const GameManagerContent = ({ games, onToggle }: { games: App[], onToggle: (gameId: string) => void }) => {
     return (
@@ -689,6 +736,7 @@ const GameManagerContent = ({ games, onToggle }: { games: App[], onToggle: (game
 const PersonalFolderContent = ({ openApp }: { openApp: (appId: string) => void; }) => {
     const apps = [
         { id: 'interests', name: 'Interests.txt', icon: <FileIcon color="#a7f3d0" /> },
+        { id: 'details', name: 'Details.txt', icon: <FileIcon color="#a7f3d0" /> },
     ];
 
     return (
@@ -727,6 +775,7 @@ export const ALL_APPS: (cvContent: CvContent, games: App[], onGameToggle: (gameI
     { id: 'contact', name: 'Contact', icon: <FolderIcon />, component: () => <ContactContent content={cvContent} /> },
     { id: 'personal', name: 'Personal', icon: <FolderIcon />, component: PersonalFolderContent },
     { id: 'interests', name: 'Interests.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <InterestsContent {...props} content={cvContent} />, isFolderContent: true },
+    { id: 'details', name: 'Details.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <DetailsContent {...props} content={cvContent} />, isFolderContent: true },
     { id: 'terminal', name: 'Terminal', icon: <TerminalAppIcon />, component: PlaceholderTerminal },
     { id: 'games', name: 'Games', icon: <FolderIcon />, component: (props: any) => <GamesFolderContent {...props} games={games} /> },
     { id: 'game-manager', name: 'Game Manager', icon: <AdminIcon />, component: () => <GameManagerContent games={games} onToggle={onGameToggle} /> },
