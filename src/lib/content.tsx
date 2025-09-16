@@ -57,7 +57,7 @@ const HackerAvatar = () => (
 
 export const initialCvContent: CvContent = {
     personalInfo: {
-        name: "Dickens Okoth Otieno",
+        name: "DICKENS OKOTH OTIENO",
         title: "IT Professional",
         contact: {
             email: "dickenokoth@gmail.com",
@@ -85,10 +85,20 @@ export const initialCvContent: CvContent = {
         ],
         education: [
             {
-                degree: "Diploma in Information Communication Technology",
-                institution: "The Cooperative University of Kenya",
-                period: "2021 - 2024",
-            }
+                degree: "Bachelor in Information Security and Forensics",
+                institution: "KCA University",
+                period: "2021 - 2025",
+            },
+            {
+                degree: "KCSE (Final Grade: B plain)",
+                institution: "Onjiko Boys Highschool",
+                period: "2017 - 2020",
+            },
+            {
+                degree: "KCPE (Final Grade: 368)",
+                institution: "Sigoti Primary School",
+                period: "2015 - 2016",
+            },
         ],
         skills: [
             "Technical Support", "Troubleshooting Hardware & Software", "Computer hardware and Software Components",
@@ -546,5 +556,7 @@ export const APPS: App[] = [
 
 
 
+
+    
 
     
