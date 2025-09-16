@@ -97,35 +97,29 @@ const CSSInvaders = () => {
       setLasers((prevLasers) => {
           const updatedLasers = prevLasers.map((laser) => ({ ...laser, y: laser.y - LASER_SPEED })).filter(l => l.y > 0);
           
-          setEnemies(currentEnemies => {
-              let enemiesHitThisFrame: number[] = [];
-              for (const laser of updatedLasers) {
-                  for (const enemy of currentEnemies) {
-                      if (
-                          laser.x < enemy.x + enemy.width &&
-                          laser.x + laser.width > enemy.x &&
-                          laser.y < enemy.y + enemy.height &&
-                          laser.y + laser.height > enemy.y
-                      ) {
-                         enemiesHitThisFrame.push(enemy.id);
-                      }
+          let enemiesHitThisFrame = new Set<number>();
+          let lasersThatHit = new Set<number>();
+
+          for (const laser of updatedLasers) {
+              for (const enemy of enemies) {
+                  if (
+                      laser.x < enemy.x + enemy.width &&
+                      laser.x + laser.width > enemy.x &&
+                      laser.y < enemy.y + enemy.height &&
+                      laser.y + laser.height > enemy.y
+                  ) {
+                     enemiesHitThisFrame.add(enemy.id);
+                     lasersThatHit.add(laser.id);
                   }
               }
-              if (enemiesHitThisFrame.length > 0) {
-                 return currentEnemies.filter(enemy => !enemiesHitThisFrame.includes(enemy.id));
-              }
-              return currentEnemies;
-          });
+          }
+
+          if (enemiesHitThisFrame.size > 0) {
+             setEnemies(currentEnemies => currentEnemies.filter(enemy => !enemiesHitThisFrame.has(enemy.id)));
+          }
 
           // Filter out lasers that hit an enemy
-          return updatedLasers.filter(laser => {
-             return !enemies.some(enemy => 
-                  laser.x < enemy.x + enemy.width &&
-                  laser.x + laser.width > enemy.x &&
-                  laser.y < enemy.y + enemy.height &&
-                  laser.y + laser.height > enemy.y
-             );
-          });
+          return updatedLasers.filter(laser => !lasersThatHit.has(laser.id));
       });
 
     }, 1000 / 60); // 60 FPS
