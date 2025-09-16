@@ -7,6 +7,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (user: string, pass: string) => boolean;
   logout: () => void;
+  promptLogin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,13 +21,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedAuth = sessionStorage.getItem('isAuthenticated');
     if (storedAuth === 'true') {
       setIsAuthenticated(true);
-    } else {
-        // If not authenticated and not on the login page, redirect.
-        if (window.location.pathname !== '/login') {
-            router.push('/login');
-        }
     }
-  }, [router]);
+  }, []);
 
   const login = (user: string, pass: string) => {
     // Hardcoded credentials for simplicity
@@ -41,11 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setIsAuthenticated(false);
     sessionStorage.removeItem('isAuthenticated');
+    router.push('/');
+  };
+  
+  const promptLogin = () => {
     router.push('/login');
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, promptLogin }}>
       {children}
     </AuthContext.Provider>
   );

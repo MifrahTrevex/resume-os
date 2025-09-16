@@ -69,9 +69,17 @@ export const initialCvContent: CvContent = {
 
 
 const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: string) => void }) => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, promptLogin } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [about, setAbout] = useState(content.about);
+
+    const handleEditClick = () => {
+        if (isAuthenticated) {
+            setIsEditing(true);
+        } else {
+            promptLogin();
+        }
+    }
 
     const handleSave = () => {
         onSave(about);
@@ -82,14 +90,10 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
         <div className="p-4 h-full flex flex-col">
             <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-bold font-headline text-foreground">About Me</h2>
-                 {isAuthenticated && (
-                    <>
-                        {!isEditing ? (
-                            <Button onClick={() => setIsEditing(true)}>Edit</Button>
-                        ) : (
-                            <Button onClick={handleSave}>Save</Button>
-                        )}
-                    </>
+                {!isEditing ? (
+                    <Button onClick={handleEditClick}>Edit</Button>
+                ) : (
+                    <Button onClick={handleSave}>Save</Button>
                 )}
             </div>
             {isEditing ? (
@@ -106,9 +110,17 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
 };
 
 const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: CvContent['resume']) => void }) => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, promptLogin } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [resume, setResume] = useState(content.resume);
+    
+    const handleEditClick = () => {
+        if (isAuthenticated) {
+            setIsEditing(true);
+        } else {
+            promptLogin();
+        }
+    }
 
     const handleSave = () => {
         onSave(resume);
@@ -167,7 +179,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
         <div className="p-4 space-y-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold font-headline text-foreground">Resume</h2>
-                {isAuthenticated && <Button onClick={() => setIsEditing(true)}>Edit</Button>}
+                <Button onClick={handleEditClick}>Edit</Button>
             </div>
             <div>
                 <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
