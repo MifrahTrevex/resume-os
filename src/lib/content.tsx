@@ -165,7 +165,7 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
                              <Textarea 
                                 value={about}
                                 onChange={(e) => setAbout(e.target.value)}
-                                className="flex-grow bg-input text-accent font-code border-border focus:ring-ring h-48"
+                                className="h-48"
                              />
                         ) : (
                             <p className="whitespace-pre-wrap text-sm">{content.about}</p>
@@ -229,10 +229,10 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                         {resume.experience.map((job, i) => (
                             <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
                                 <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeExperience(i)}><Trash2 size={14} /></Button>
-                                <Label>Role</Label><Input value={job.role} onChange={e => handleExperienceChange(i, 'role', e.target.value)} className="bg-input"/>
-                                <Label>Company</Label><Input value={job.company} onChange={e => handleExperienceChange(i, 'company', e.target.value)} className="bg-input"/>
-                                <Label>Period</Label><Input value={job.period} onChange={e => handleExperienceChange(i, 'period', e.target.value)} className="bg-input"/>
-                                <Label>Description</Label><Textarea value={job.description} onChange={e => handleExperienceChange(i, 'description', e.target.value)} className="bg-input"/>
+                                <Label>Role</Label><Input value={job.role} onChange={e => handleExperienceChange(i, 'role', e.target.value)} />
+                                <Label>Company</Label><Input value={job.company} onChange={e => handleExperienceChange(i, 'company', e.target.value)} />
+                                <Label>Period</Label><Input value={job.period} onChange={e => handleExperienceChange(i, 'period', e.target.value)} />
+                                <Label>Description</Label><Textarea value={job.description} onChange={e => handleExperienceChange(i, 'description', e.target.value)} />
                             </div>
                         ))}
                     </div>
@@ -246,9 +246,9 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                         {resume.education.map((edu, i) => (
                             <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
                                 <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeEducation(i)}><Trash2 size={14} /></Button>
-                                <Label>Degree/Certificate</Label><Input value={edu.degree} onChange={e => handleEducationChange(i, 'degree', e.target.value)} className="bg-input"/>
-                                <Label>Institution</Label><Input value={edu.institution} onChange={e => handleEducationChange(i, 'institution', e.target.value)} className="bg-input"/>
-                                <Label>Period</Label><Input value={edu.period} onChange={e => handleEducationChange(i, 'period', e.target.value)} className="bg-input"/>
+                                <Label>Degree/Certificate</Label><Input value={edu.degree} onChange={e => handleEducationChange(i, 'degree', e.target.value)} />
+                                <Label>Institution</Label><Input value={edu.institution} onChange={e => handleEducationChange(i, 'institution', e.target.value)} />
+                                <Label>Period</Label><Input value={edu.period} onChange={e => handleEducationChange(i, 'period', e.target.value)} />
                             </div>
                         ))}
                     </div>
@@ -262,9 +262,9 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                         {resume.referees.map((ref, i) => (
                             <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
                                 <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => removeReferee(i)}><Trash2 size={14} /></Button>
-                                <Label>Name</Label><Input value={ref.name} onChange={e => handleRefereeChange(i, 'name', e.target.value)} className="bg-input"/>
-                                <Label>Title/Company</Label><Input value={ref.title} onChange={e => handleRefereeChange(i, 'title', e.target.value)} className="bg-input"/>
-                                <Label>Contact (Email/Phone)</Label><Input value={ref.contact} onChange={e => handleRefereeChange(i, 'contact', e.target.value)} className="bg-input"/>
+                                <Label>Name</Label><Input value={ref.name} onChange={e => handleRefereeChange(i, 'name', e.target.value)} />
+                                <Label>Title/Company</Label><Input value={ref.title} onChange={e => handleRefereeChange(i, 'title', e.target.value)} />
+                                <Label>Contact (Email/Phone)</Label><Input value={ref.contact} onChange={e => handleRefereeChange(i, 'contact', e.target.value)} />
                             </div>
                         ))}
                     </div>
@@ -382,25 +382,21 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
                             <Input
                                 value={proj.title}
                                 onChange={e => handleProjectChange(i, 'title', e.target.value)}
-                                className="bg-input text-accent font-code border-border"
                             />
                             <Label>Description</Label>
                             <Textarea
                                 value={proj.description}
                                 onChange={e => handleProjectChange(i, 'description', e.target.value)}
-                                className="bg-input text-accent font-code border-border"
                             />
                             <Label>Technologies (comma-separated)</Label>
                             <Input
                                 value={proj.tech.join(', ')}
                                 onChange={e => handleProjectChange(i, 'tech', e.target.value)}
-                                className="bg-input text-accent font-code border-border"
                             />
                             <Label>Link</Label>
                             <Input
                                 value={proj.link}
                                 onChange={e => handleProjectChange(i, 'link', e.target.value)}
-                                className="bg-input text-accent font-code border-border"
                             />
                         </div>
                     ))}
@@ -556,6 +552,8 @@ export const APPS: App[] = [
 
 
 
+
+    
 
     
 
