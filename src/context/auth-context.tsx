@@ -3,8 +3,8 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase-config';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, User, Auth } from 'firebase/auth';
+import { app } from '@/lib/firebase-config';
 import { toast } from '@/hooks/use-toast';
 
 
@@ -24,24 +24,31 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [userType, setUserType] = useState<UserType>(null);
   const [loading, setLoading] = useState(true);
+  const [auth, setAuth] = useState<Auth | null>(null);
   const router = useRouter();
-
+  
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserType('admin');
-      } else {
-        setUserType(null);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    if (app) {
+      const authInstance = getAuth(app);
+      setAuth(authInstance);
+      const unsubscribe = onAuthStateChanged(authInstance, (user) => {
+        if (user) {
+          setUserType('admin');
+        } else {
+          setUserType(null);
+        }
+        setLoading(false);
+      });
+      return () => unsubscribe();
+    } else {
+        setLoading(false);
+    }
   }, []);
   
   const isAuthenticated = userType !== null;
 
   const login = async (email: string, pass: string) => {
+    if (!auth) return false;
     try {
       await signInWithEmailAndPassword(auth, email, pass);
       setUserType('admin');
@@ -69,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   
   const logout = async () => {
+    if (!auth) return;
     await signOut(auth);
     setUserType(null);
     router.push('/');
