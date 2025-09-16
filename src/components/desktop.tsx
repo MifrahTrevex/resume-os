@@ -114,7 +114,7 @@ function Terminal({ openApp }: { openApp: (appId: 'about' | 'resume' | 'projects
 
 
 export default function Desktop() {
-  const { isAuthenticated, userType, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
   const [cvContent, setCvContent] = useState<CvContent>(initialCvContent);
@@ -192,7 +192,7 @@ export default function Desktop() {
          <div className="absolute top-4 right-4 z-[100] flex items-center gap-4">
            <div className="flex items-center gap-2 text-sm bg-card/70 p-2 rounded-md">
                 <User />
-                <span>{userType === 'admin' ? 'Admin' : 'Guest'}</span>
+                <span>Admin</span>
            </div>
            <Button variant="destructive" onClick={logout}>
              <LogOut className="mr-2 h-4 w-4" /> Logout

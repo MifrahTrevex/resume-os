@@ -7,13 +7,12 @@ import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from 'f
 import { toast } from '@/hooks/use-toast';
 
 
-type UserType = 'admin' | 'guest' | null;
+type UserType = 'admin' | null;
 
 interface AuthContextType {
   isAuthenticated: boolean;
   userType: UserType;
   login: (email: string, pass: string) => Promise<boolean>;
-  guestLogin: () => boolean;
   logout: () => void;
   promptLogin: () => void;
   loading: boolean;
@@ -30,15 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserType('admin');
-        sessionStorage.setItem('userType', 'admin');
       } else {
-        const storedUserType = sessionStorage.getItem('userType') as UserType;
-        if (storedUserType === 'guest') {
-            setUserType('guest');
-        } else {
-            setUserType(null);
-            sessionStorage.removeItem('userType');
-        }
+        setUserType(null);
       }
       setLoading(false);
     });
@@ -52,7 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await signInWithEmailAndPassword(auth, email, pass);
       setUserType('admin');
-      sessionStorage.setItem('userType', 'admin');
       return true;
     } catch (error: any) {
       console.error("Firebase login error:", error);
@@ -76,18 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
   
-  const guestLogin = () => {
-    setUserType('guest');
-    sessionStorage.setItem('userType', 'guest');
-    return true;
-  }
-
   const logout = async () => {
-    if (userType === 'admin') {
-      await signOut(auth);
-    }
+    await signOut(auth);
     setUserType(null);
-    sessionStorage.removeItem('userType');
     router.push('/');
   };
   
@@ -96,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userType, login, guestLogin, logout, promptLogin, loading }}>
+    <AuthContext.Provider value={{ isAuthenticated, userType, login, logout, promptLogin, loading }}>
       {loading ? <div>Loading...</div> : children}
     </AuthContext.Provider>
   );

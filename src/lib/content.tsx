@@ -69,12 +69,12 @@ export const initialCvContent: CvContent = {
 
 
 const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: string) => void }) => {
-    const { isAuthenticated, promptLogin } = useAuth();
+    const { userType, promptLogin } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [about, setAbout] = useState(content.about);
 
     const handleEditClick = () => {
-        if (isAuthenticated) {
+        if (userType === 'admin') {
             setIsEditing(true);
         } else {
             promptLogin();
@@ -93,10 +93,10 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
                 {!isEditing ? (
                     <Button onClick={handleEditClick}>Edit</Button>
                 ) : (
-                    <Button onClick={handleSave}>Save</Button>
+                    userType === 'admin' && <Button onClick={handleSave}>Save</Button>
                 )}
             </div>
-            {isEditing ? (
+            {isEditing && userType === 'admin' ? (
                  <Textarea 
                     value={about}
                     onChange={(e) => setAbout(e.target.value)}
@@ -110,12 +110,12 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
 };
 
 const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: CvContent['resume']) => void }) => {
-    const { isAuthenticated, promptLogin } = useAuth();
+    const { userType, promptLogin } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [resume, setResume] = useState(content.resume);
     
     const handleEditClick = () => {
-        if (isAuthenticated) {
+        if (userType === 'admin') {
             setIsEditing(true);
         } else {
             promptLogin();
@@ -133,7 +133,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
         setResume({...resume, experience: newExperience});
     }
 
-    if (isEditing) {
+    if (isEditing && userType === 'admin') {
         return (
             <div className="p-4 space-y-6 h-full flex flex-col">
                 <div className="flex justify-between items-center">
