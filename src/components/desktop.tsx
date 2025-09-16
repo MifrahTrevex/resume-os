@@ -1118,16 +1118,17 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
 
 
       <div className="relative w-full h-[calc(100%-40px)] p-4 overflow-hidden">
-        {desktopApps.map((app, index) => (
-          <DesktopIcon
-            key={app.id}
-            name={app.name}
-            icon={app.icon}
-            onClick={() => openApp(app.id)}
-            initialPosition={{ x: 20, y: 20 + index * 110 }}
-            onContextMenu={isAuthenticated ? (e) => handleRightClick(e, app) : undefined}
-          />
-        ))}
+        <div className="flex flex-col flex-wrap h-full content-start">
+            {desktopApps.map((app) => (
+              <DesktopIcon
+                key={app.id}
+                name={app.name}
+                icon={app.icon}
+                onClick={() => openApp(app.id)}
+                onContextMenu={isAuthenticated ? (e) => handleRightClick(e, app) : undefined}
+              />
+            ))}
+        </div>
       </div>
 
       {windows.filter(w => !w.minimized).map(win => (

@@ -5,8 +5,8 @@ import { useState, useRef, useEffect, type RefObject, useCallback } from 'react'
 
 const DRAG_THRESHOLD = 5; // pixels
 
-export function useDraggableIcon(elRef: RefObject<HTMLElement>, initialPosition: { x: number; y: number }) {
-  const [position, setPosition] = useState(initialPosition);
+export function useDraggableIcon(elRef: RefObject<HTMLElement>) {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const isDraggingRef = useRef(false);
   const dragStartPosRef = useRef({ x: 0, y: 0 });
   const elStartPosRef = useRef({ x: 0, y: 0 });
@@ -15,9 +15,12 @@ export function useDraggableIcon(elRef: RefObject<HTMLElement>, initialPosition:
   useEffect(() => {
     const el = elRef.current;
     if (!el) return;
+    
+    // For grid layout, we don't need absolute positioning from this hook.
+    // If you ever switch back to a free-floating desktop, this will need to be re-enabled.
+    // el.style.position = 'absolute';
 
     const onMouseDown = (e: MouseEvent) => {
-      // Prevent dragging when clicking on interactive elements within the icon if any
       if (e.target instanceof HTMLButtonElement && e.target !== el) {
           return;
       }
@@ -25,7 +28,7 @@ export function useDraggableIcon(elRef: RefObject<HTMLElement>, initialPosition:
       isDraggingRef.current = true;
       hasMovedRef.current = false;
       dragStartPosRef.current = { x: e.clientX, y: e.clientY };
-      elStartPosRef.current = position;
+      elStartPosRef.current = { x: el.offsetLeft, y: el.offsetTop };
     };
 
     const onMouseMove = (e: MouseEvent) => {
@@ -38,13 +41,8 @@ export function useDraggableIcon(elRef: RefObject<HTMLElement>, initialPosition:
         hasMovedRef.current = true;
       }
       
-      const parent = el.parentElement;
-      if (!parent) return;
-
-      const newX = Math.min(Math.max(0, elStartPosRef.current.x + dx), parent.clientWidth - el.clientWidth);
-      const newY = Math.min(Math.max(0, elStartPosRef.current.y + dy), parent.clientHeight - el.clientHeight);
-
-      setPosition({ x: newX, y: newY });
+      // Dragging logic would go here if not using a CSS grid for layout.
+      // For now, this hook primarily handles the click vs. drag detection.
     };
 
     const onMouseUp = (e: MouseEvent) => {
@@ -62,9 +60,10 @@ export function useDraggableIcon(elRef: RefObject<HTMLElement>, initialPosition:
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
     };
-  }, [position, elRef]);
+  }, [elRef]);
 
   const wasDragged = useCallback(() => hasMovedRef.current, []);
 
+  // Position and setPosition are returned for API consistency, but are not used for grid layout
   return { position, setPosition, wasDragged };
 }

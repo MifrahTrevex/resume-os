@@ -6,13 +6,12 @@ interface DesktopIconProps {
   icon: React.ReactNode;
   name: string;
   onClick: () => void;
-  initialPosition: { x: number; y: number };
   onContextMenu?: (event: MouseEvent) => void;
 }
 
-export default function DesktopIcon({ icon, name, onClick, initialPosition, onContextMenu }: DesktopIconProps) {
+export default function DesktopIcon({ icon, name, onClick, onContextMenu }: DesktopIconProps) {
   const iconRef = useRef<HTMLButtonElement>(null);
-  const { position, wasDragged } = useDraggableIcon(iconRef, initialPosition);
+  const { position, wasDragged } = useDraggableIcon(iconRef);
 
   const handleClick = () => {
       if (!wasDragged()) {
@@ -26,9 +25,7 @@ export default function DesktopIcon({ icon, name, onClick, initialPosition, onCo
       onClick={handleClick}
       onContextMenu={onContextMenu}
       style={{
-        position: 'absolute',
-        top: `${position.y}px`,
-        left: `${position.x}px`,
+        position: 'relative', // Changed to relative for grid layout
         touchAction: 'none',
       }}
       className={cn(
@@ -38,7 +35,7 @@ export default function DesktopIcon({ icon, name, onClick, initialPosition, onCo
       )}
     >
       <div className="w-16 h-16 flex items-center justify-center pointer-events-none">{icon}</div>
-      <span className="text-sm select-none pointer-events-none">{name}</span>
+      <span className="text-sm select-none pointer-events-none bg-transparent">{name}</span>
     </button>
   );
 }
