@@ -27,6 +27,7 @@ import BootScreen from './boot-screen';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { Label } from './ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import TaskManager from './task-manager';
 
 type TerminalLine = {
   type: 'input' | 'output' | 'system' | 'error';
@@ -723,11 +724,21 @@ export default function Desktop() {
 
    useEffect(() => {
     const generatedApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
+    let finalApps = generatedApps;
     if (!isAuthenticated) {
-      setApps(generatedApps.filter(app => app.id !== 'game-manager'));
-    } else {
-      setApps(generatedApps);
+      finalApps = finalApps.filter(app => app.id !== 'game-manager');
     }
+    
+    // Add Task Manager to the list of apps
+    finalApps.push({
+        id: 'task-manager',
+        name: 'Task Manager',
+        icon: ALL_APPS(cvContent, gameApps, handleGameToggle).find(a => a.id === 'task-manager')!.icon,
+        component: TaskManager,
+    });
+
+
+    setApps(finalApps);
   }, [cvContent, gameApps, isAuthenticated]);
 
   useEffect(() => {
@@ -746,20 +757,28 @@ export default function Desktop() {
   }
   
     const handleShutdown = () => {
-        setPowerState('shutting_down');
+        setPowerState('confirming');
         setPowerMessage('Shutting Down...');
+        setWindows([]); // Close all windows
         setTimeout(() => {
-            setPowerState('off');
-            setPowerMessage('System Halted.');
-        }, 2000);
+            setPowerState('shutting_down');
+            setTimeout(() => {
+                setPowerState('off');
+                setPowerMessage('System Halted. It is now safe to turn off your computer.');
+            }, 3000);
+        }, 500);
     };
 
     const handleRestart = () => {
-        setPowerState('restarting');
+        setPowerState('confirming');
         setPowerMessage('Restarting...');
+        setWindows([]); // Close all windows
         setTimeout(() => {
-            window.location.reload();
-        }, 2000);
+            setPowerState('restarting');
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        }, 500);
     };
 
     const handleRightClick = (e: MouseEvent, item?: App) => {
@@ -961,6 +980,10 @@ export default function Desktop() {
         return <Terminal openApp={openApp} cvContent={cvContent} initialCommand={terminalInitialCommand} />;
     }
     
+    if (app.id === 'task-manager') {
+        return <TaskManager windows={windows} onClose={closeWindow} onFocus={focusWindow} />;
+    }
+
     if (['about', 'resume', 'projects', 'interests', 'details'].includes(app.id)) {
         return <app.component onSave={handleContentUpdate} />;
     }
@@ -987,7 +1010,7 @@ export default function Desktop() {
 
    if (powerState === 'shutting_down' || powerState === 'restarting' || powerState === 'off') {
         return (
-            <div className="w-full h-full bg-black flex items-center justify-center">
+            <div className="w-full h-full bg-black flex items-center justify-center text-center p-4">
                 <p className="text-foreground font-code text-2xl animate-pulse">{powerMessage}</p>
             </div>
         );
@@ -1012,7 +1035,7 @@ export default function Desktop() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure you want to proceed?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Any unsaved changes will be lost.
+                        All open applications will be closed.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -1115,3 +1138,5 @@ export default function Desktop() {
     </div>
   );
 }
+
+    

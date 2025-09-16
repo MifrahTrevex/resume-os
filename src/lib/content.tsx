@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check, ExternalLink, Plus, Edit, Settings } from 'lucide-react';
+import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check, ExternalLink, Plus, Edit, Settings, Cpu } from 'lucide-react';
 import CSSInvaders from '@/components/css-invaders';
 import HackerClicker from '@/components/hacker-clicker';
 import SystemOverride from '@/components/system-override';
@@ -56,6 +56,14 @@ const AdminIcon = () => (
         <path d="M5 22C7.20914 22 9 20.2091 9 18C9 15.7909 7.20914 14 5 14C2.79086 14 1 15.7909 1 18C1 20.2091 2.79086 22 5 22Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M14 6L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M10 18L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
+const TaskManagerIcon = () => (
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-primary/80">
+        <rect x="2" y="2" width="20" height="20" rx="2" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.1"/>
+        <path d="M7 12L10 15L17 8" stroke="hsl(var(--foreground))" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M2 7H22" stroke="currentColor" strokeWidth="1.5"/>
     </svg>
 );
 
@@ -780,4 +788,7 @@ export const ALL_APPS: (cvContent: CvContent, games: App[], onGameToggle: (gameI
     { id: 'games', name: 'Games', icon: <FolderIcon />, component: (props: any) => <GamesFolderContent {...props} games={games} /> },
     ...games.map(g => ({...g, isFolderContent: true, parentId: 'games'})),
     { id: 'game-manager', name: 'Game Manager', icon: <AdminIcon />, component: () => <GameManagerContent games={games} onToggle={onGameToggle} /> },
+    { id: 'task-manager', name: 'Task Manager', icon: <TaskManagerIcon />, component: PlaceholderTerminal },
 ].filter((app, index, self) => index === self.findIndex((t) => (t.id === app.id)));
+
+    
