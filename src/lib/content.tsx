@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/context/auth-context';
 
 const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w.org/2000/svg">
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M41 4H15C13.8954 4 13 4.89543 13 6V58C13 59.1046 13.8954 60 15 60H49C50.1046 60 51 59.1046 51 58V14L41 4Z" fill={color} fillOpacity="0.8"/>
         <path d="M41 4V14H51" fill={color} fillOpacity="0.5"/>
     </svg>
@@ -68,6 +69,7 @@ export const initialCvContent: CvContent = {
 
 
 const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: string) => void }) => {
+    const { isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [about, setAbout] = useState(content.about);
 
@@ -80,10 +82,14 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
         <div className="p-4 h-full flex flex-col">
             <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-bold font-headline text-foreground">About Me</h2>
-                {!isEditing ? (
-                    <Button onClick={() => setIsEditing(true)}>Edit</Button>
-                ) : (
-                    <Button onClick={handleSave}>Save</Button>
+                 {isAuthenticated && (
+                    <>
+                        {!isEditing ? (
+                            <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                        ) : (
+                            <Button onClick={handleSave}>Save</Button>
+                        )}
+                    </>
                 )}
             </div>
             {isEditing ? (
@@ -100,6 +106,7 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
 };
 
 const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: CvContent['resume']) => void }) => {
+    const { isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [resume, setResume] = useState(content.resume);
 
@@ -160,7 +167,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
         <div className="p-4 space-y-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold font-headline text-foreground">Resume</h2>
-                <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                {isAuthenticated && <Button onClick={() => setIsEditing(true)}>Edit</Button>}
             </div>
             <div>
                 <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>

@@ -8,7 +8,8 @@ import DesktopIcon from './desktop-icon';
 import { handleCommand } from '@/lib/actions';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Terminal as TerminalIcon } from 'lucide-react';
+import { LogOut } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 import type { InterpretTerminalCommandOutput } from '@/ai/flows/terminal-command-interpretation';
 
 type TerminalLine = {
@@ -113,6 +114,7 @@ function Terminal({ openApp }: { openApp: (appId: 'about' | 'resume' | 'projects
 
 
 export default function Desktop() {
+  const { isAuthenticated, logout } = useAuth();
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
   const [cvContent, setCvContent] = useState<CvContent>(initialCvContent);
@@ -186,6 +188,13 @@ export default function Desktop() {
 
   return (
     <div className="relative w-full h-full p-4">
+       {isAuthenticated && (
+         <div className="absolute top-4 right-4 z-[100]">
+           <Button variant="destructive" onClick={logout}>
+             <LogOut className="mr-2 h-4 w-4" /> Logout
+           </Button>
+         </div>
+       )}
       <div className="grid grid-cols-1 justify-start gap-4">
         {APPS.map(app => (
           <DesktopIcon
