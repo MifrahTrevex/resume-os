@@ -104,7 +104,7 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
                 <Card className="bg-card/50">
                     <CardHeader className="items-center text-center">
                         <Image
-                            src="https://picsum.photos/seed/1/128/128"
+                            src="https://storage.googleapis.com/aifirebase-773b0.appspot.com/images/passport_style_photo.png"
                             alt="Profile Picture"
                             width={128}
                             height={128}
