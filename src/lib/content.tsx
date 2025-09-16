@@ -1,4 +1,4 @@
-import type { App, CvContent } from './types';
+import type { App, CvContent, Project } from './types';
 import { Terminal as TerminalIcon } from 'lucide-react';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Trash2 } from 'lucide-react';
 
 const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -101,7 +103,7 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
                  <Textarea 
                     value={about}
                     onChange={(e) => setAbout(e.target.value)}
-                    className="flex-grow bg-black text-slate-100 font-code border-slate-700 focus:ring-amber-400"
+                    className="flex-grow bg-input text-foreground font-code border-border focus:ring-ring"
                  />
             ) : (
                 <p className="whitespace-pre-wrap flex-grow">{content.about}</p>
@@ -141,103 +143,195 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                     <h2 className="text-xl font-bold font-headline text-foreground">Edit Resume</h2>
                     <Button onClick={handleSave}>Save</Button>
                 </div>
-                <div className="flex-grow overflow-y-auto pr-2">
+                <ScrollArea className="flex-grow pr-4">
                     <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
                     {resume.experience.map((job, i) => (
                         <div key={i} className="space-y-2 border-b border-border pb-4 mb-4">
-                             <Label className="text-amber-400">Role</Label>
+                             <Label>Role</Label>
                              <Input 
                                 value={job.role} 
                                 onChange={e => handleExperienceChange(i, 'role', e.target.value)}
-                                className="bg-black text-slate-100 font-code border-slate-700"
+                                className="bg-input text-foreground font-code border-border"
                             />
-                            <Label className="text-amber-400">Company</Label>
+                            <Label>Company</Label>
                              <Input 
                                 value={job.company} 
                                 onChange={e => handleExperienceChange(i, 'company', e.target.value)}
-                                className="bg-black text-slate-100 font-code border-slate-700"
+                                className="bg-input text-foreground font-code border-border"
                             />
-                             <Label className="text-amber-400">Period</Label>
+                             <Label>Period</Label>
                              <Input 
                                 value={job.period} 
                                 onChange={e => handleExperienceChange(i, 'period', e.target.value)}
-                                className="bg-black text-slate-100 font-code border-slate-700"
+                                className="bg-input text-foreground font-code border-border"
                             />
-                            <Label className="text-amber-400">Description</Label>
+                            <Label>Description</Label>
                             <Textarea 
                                 value={job.description}
                                 onChange={e => handleExperienceChange(i, 'description', e.target.value)}
-                                className="bg-black text-slate-100 font-code border-slate-700"
+                                className="bg-input text-foreground font-code border-border"
                             />
                         </div>
                     ))}
-                </div>
+                </ScrollArea>
             </div>
         )
     }
 
     return (
-        <div className="p-4 space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold font-headline text-foreground">Resume</h2>
-                {isAuthenticated && <Button onClick={handleEditClick}>Edit</Button>}
-            </div>
-            <div>
-                <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
-                <div className="space-y-4">
-                    {content.resume.experience.map((job, i) => (
-                        <div key={i}>
-                            <h4 className="font-bold">{job.role}</h4>
-                            <p className="text-sm text-muted-foreground">{job.company} | {job.period}</p>
-                            <p className="mt-1 whitespace-pre-wrap">{job.description}</p>
-                        </div>
-                    ))}
+        <ScrollArea className="h-full">
+            <div className="p-4 space-y-6">
+                <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-bold font-headline text-foreground">Resume</h2>
+                    {isAuthenticated && <Button onClick={handleEditClick}>Edit</Button>}
                 </div>
-            </div>
-            
-            {content.resume.education.length > 0 && (
                 <div>
-                    <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Education</h3>
-                    {content.resume.education.map((edu, i) => (
-                        <div key={i} className="mb-4">
-                            <h4 className="font-bold">{edu.degree}</h4>
-                            <p className="text-sm text-muted-foreground">{edu.institution} | {edu.period}</p>
-                        </div>
-                    ))}
+                    <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
+                    <div className="space-y-4">
+                        {content.resume.experience.map((job, i) => (
+                            <div key={i}>
+                                <h4 className="font-bold">{job.role}</h4>
+                                <p className="text-sm text-muted-foreground">{job.company} | {job.period}</p>
+                                <p className="mt-1 whitespace-pre-wrap">{job.description}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            )}
+                
+                {content.resume.education.length > 0 && (
+                    <div>
+                        <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Education</h3>
+                        {content.resume.education.map((edu, i) => (
+                            <div key={i} className="mb-4">
+                                <h4 className="font-bold">{edu.degree}</h4>
+                                <p className="text-sm text-muted-foreground">{edu.institution} | {edu.period}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
-            <div>
-                <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Skills</h3>
-                <div className="flex flex-wrap gap-2">
-                    {content.resume.skills.map(skill => <span key={skill} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{skill}</span>)}
+                <div>
+                    <h3 className="text-lg font-semibold font-headline mt-6 mb-2">Skills</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {content.resume.skills.map(skill => <span key={skill} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{skill}</span>)}
+                    </div>
                 </div>
             </div>
-        </div>
+        </ScrollArea>
     );
 };
 
-const ProjectsContent = ({ content }: { content: CvContent }) => (
-    <div className="p-4">
-        <h2 className="text-xl font-bold font-headline mb-4 text-foreground">Projects</h2>
-        {content.projects.length > 0 ? (
-            <div className="space-y-4">
-            {content.projects.map((proj, i) => (
-                 <div key={i}>
-                    <h3 className="font-bold">{proj.title}</h3>
-                    <p className="mt-1 mb-2">{proj.description}</p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                        {proj.tech.map(t => <span key={t} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{t}</span>)}
-                        <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs">View on GitHub &rarr;</a>
+const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (newProjects: Project[]) => void }) => {
+    const { userType, promptLogin, isAuthenticated } = useAuth();
+    const [isEditing, setIsEditing] = useState(false);
+    const [projects, setProjects] = useState(content.projects);
+
+    const handleEditClick = () => {
+        if (userType === 'admin') {
+            setIsEditing(true);
+        } else {
+            promptLogin();
+        }
+    };
+
+    const handleSave = () => {
+        onSave(projects);
+        setIsEditing(false);
+    };
+
+    const handleProjectChange = (index: number, field: keyof Project, value: string) => {
+        const newProjects = [...projects];
+        if (field === 'tech') {
+            newProjects[index][field] = value.split(',').map(s => s.trim());
+        } else {
+            (newProjects[index] as any)[field] = value;
+        }
+        setProjects(newProjects);
+    };
+
+    const addProject = () => {
+        setProjects([...projects, { title: '', description: '', tech: [], link: '' }]);
+    };
+
+    const removeProject = (index: number) => {
+        const newProjects = projects.filter((_, i) => i !== index);
+        setProjects(newProjects);
+    };
+
+    if (isEditing && userType === 'admin') {
+        return (
+            <div className="p-4 h-full flex flex-col">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold font-headline text-foreground">Edit Projects</h2>
+                    <div className="flex gap-2">
+                        <Button onClick={addProject}>Add Project</Button>
+                        <Button onClick={handleSave}>Save</Button>
                     </div>
                 </div>
-            ))}
+                <ScrollArea className="flex-grow pr-4">
+                    {projects.map((proj, i) => (
+                        <div key={i} className="space-y-2 border-b border-border pb-4 mb-4 relative">
+                            <Button variant="destructive" size="icon" className="absolute top-0 right-0 h-7 w-7" onClick={() => removeProject(i)}>
+                                <Trash2 size={16} />
+                            </Button>
+                            <Label>Title</Label>
+                            <Input
+                                value={proj.title}
+                                onChange={e => handleProjectChange(i, 'title', e.target.value)}
+                                className="bg-input text-foreground font-code border-border"
+                            />
+                            <Label>Description</Label>
+                            <Textarea
+                                value={proj.description}
+                                onChange={e => handleProjectChange(i, 'description', e.target.value)}
+                                className="bg-input text-foreground font-code border-border"
+                            />
+                            <Label>Technologies (comma-separated)</Label>
+                            <Input
+                                value={proj.tech.join(', ')}
+                                onChange={e => handleProjectChange(i, 'tech', e.target.value)}
+                                className="bg-input text-foreground font-code border-border"
+                            />
+                            <Label>Link</Label>
+                            <Input
+                                value={proj.link}
+                                onChange={e => handleProjectChange(i, 'link', e.target.value)}
+                                className="bg-input text-foreground font-code border-border"
+                            />
+                        </div>
+                    ))}
+                </ScrollArea>
             </div>
-        ) : (
-            <p>No projects listed in the provided CV.</p>
-        )}
-    </div>
-);
+        );
+    }
+
+    return (
+        <ScrollArea className="h-full">
+            <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold font-headline text-foreground">Projects</h2>
+                    {isAuthenticated && <Button onClick={handleEditClick}>Edit</Button>}
+                </div>
+                {content.projects.length > 0 ? (
+                    <div className="space-y-4">
+                    {content.projects.map((proj, i) => (
+                         <div key={i}>
+                            <h3 className="font-bold">{proj.title}</h3>
+                            <p className="mt-1 mb-2 whitespace-pre-wrap">{proj.description}</p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {proj.tech.map(t => <span key={t} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{t}</span>)}
+                                <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-xs">View Project &rarr;</a>
+                            </div>
+                        </div>
+                    ))}
+                    </div>
+                ) : (
+                    <p>No projects listed yet. Log in to add some!</p>
+                )}
+            </div>
+        </ScrollArea>
+    );
+};
 
 const ContactContent = ({ content }: { content: CvContent }) => (
      <div className="p-4">

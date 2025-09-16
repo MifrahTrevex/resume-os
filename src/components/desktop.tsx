@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
-import type { WindowInstance, CvContent } from '@/lib/types';
+import type { WindowInstance, CvContent, Project } from '@/lib/types';
 import { APPS, initialCvContent } from '@/lib/content';
 import Window from './window';
 import DesktopIcon from './desktop-icon';
@@ -176,6 +176,10 @@ export default function Desktop() {
     
     if (appId === 'resume') {
         return <app.component content={cvContent} onSave={(newResume: CvContent['resume']) => handleContentUpdate({ resume: newResume })} />;
+    }
+
+    if (appId === 'projects') {
+        return <app.component content={cvContent} onSave={(newProjects: Project[]) => handleContentUpdate({ projects: newProjects })} />;
     }
     
     return <app.component content={cvContent} />;
