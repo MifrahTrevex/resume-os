@@ -910,7 +910,7 @@ export default function Desktop() {
     }
 
   return (
-    <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('/img/wallpaper.jpg')"}}>
+    <div className="desktop-background relative w-full h-full bg-background">
        {isAuthenticated && (
          <div className="absolute top-4 right-4 z-[100] flex items-center gap-4">
            <div className="flex items-center gap-2 text-sm bg-card/70 p-2 rounded-md">

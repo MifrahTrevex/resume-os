@@ -1,0 +1,9 @@
+
+.desktop-background {
+    background-image:
+        radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.05) 1px, transparent 0),
+        url('data:image/svg+xml,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g opacity="0.1"><circle cx="7" cy="12" r="5" stroke="hsl(130, 80%, 50%)" stroke-width="1.5"/><circle cx="17" cy="12" r="5" stroke="hsl(130, 70%, 85%)" stroke-width="1.5"/><path d="M12 12L17 12" stroke="hsl(130, 70%, 85%)" stroke-width="1"/><path d="M17 12L15 10" stroke="hsl(130, 80%, 50%)" stroke-width="1"/><path d="M17 12L20 14" stroke="hsl(130, 80%, 50%)" stroke-width="1"/><path d="M17 12L19 9" stroke="hsl(130, 80%, 50%)" stroke-width="1"/><path d="M17 12L15.5 15" stroke="hsl(130, 80%, 50%)" stroke-width="1"/><path d="M17 12L19.5 14.5" stroke="hsl(130, 80%, 50%)" stroke-width="1"/></g></svg>');
+    background-size: 20px 20px, 300px 300px;
+    background-position: center center;
+    background-repeat: repeat, no-repeat;
+}
