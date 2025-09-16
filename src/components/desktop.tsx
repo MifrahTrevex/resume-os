@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
@@ -7,6 +6,7 @@ import type { WindowInstance, CvContent, Project, App } from '@/lib/types';
 import { initialGameApps, initialCvContent, ALL_APPS } from '@/lib/content';
 import Window from './window';
 import DesktopIcon from './desktop-icon';
+import Taskbar from './taskbar';
 import { handleInterview, handleCommand } from '@/lib/actions';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -762,6 +762,7 @@ export default function Desktop() {
               position: { x: 50 + windows.length * 20, y: 50 + windows.length * 20 },
               size: { width: 640, height: 480 },
               zIndex: newZIndex,
+              minimized: false,
             };
             setWindows(prev => [...prev, newWindow]);
             setActiveWindow(newWindow.id);
@@ -787,6 +788,7 @@ export default function Desktop() {
       position: { x: 50 + windows.length * 20, y: 50 + windows.length * 20 },
       size: { width: 640, height: 480 },
       zIndex: newZIndex,
+      minimized: false,
     };
     setWindows(prev => [...prev, newWindow]);
     setActiveWindow(newWindow.id);
@@ -812,11 +814,36 @@ export default function Desktop() {
     const newZIndex = zIndexCounter.current + 1;
     zIndexCounter.current = newZIndex;
     setWindows(prev =>
-      prev.map(w => (w.id === id ? { ...w, zIndex: newZIndex } : w))
+      prev.map(w => (w.id === id ? { ...w, zIndex: newZIndex, minimized: false } : w))
     );
     setActiveWindow(id);
   };
   
+  const minimizeWindow = (id: string) => {
+    setWindows(prev =>
+      prev.map(w => (w.id === id ? { ...w, minimized: true } : w))
+    );
+    if (activeWindow === id) {
+        setActiveWindow(null);
+    }
+  };
+
+  const handleTaskbarClick = (id: string) => {
+    const window = windows.find(w => w.id === id);
+    if (!window) return;
+
+    if (window.minimized) {
+        focusWindow(id); // This will also un-minimize
+    } else {
+        if (activeWindow === id) {
+            minimizeWindow(id);
+        } else {
+            focusWindow(id);
+        }
+    }
+  };
+
+
   const renderWindowContent = (win: WindowInstance) => {
     const app = APPS.find(a => a.id === win.appId);
     if (!app) return null;
@@ -896,7 +923,7 @@ export default function Desktop() {
         ))}
       </div>
 
-      {windows.map(win => (
+      {windows.filter(w => !w.minimized).map(win => (
         <Window
           key={win.id}
           title={win.title}
@@ -904,10 +931,17 @@ export default function Desktop() {
           initialSize={win.size}
           onClose={() => closeWindow(win.id)}
           onFocus={() => focusWindow(win.id)}
+          onMinimize={() => minimizeWindow(win.id)}
         >
           {renderWindowContent(win)}
         </Window>
       ))}
+      <Taskbar
+        windows={windows}
+        apps={APPS}
+        onTaskbarClick={handleTaskbarClick}
+        activeWindowId={activeWindow}
+      />
     </div>
   );
 }

@@ -10,11 +10,12 @@ interface WindowProps {
   children: React.ReactNode;
   onClose: () => void;
   onFocus: () => void;
+  onMinimize: () => void;
   zIndex: number;
   initialSize: { width: number; height: number };
 }
 
-export default function Window({ title, children, onClose, onFocus, zIndex, initialSize }: WindowProps) {
+export default function Window({ title, children, onClose, onFocus, onMinimize, zIndex, initialSize }: WindowProps) {
   const windowRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
   const { position, setPosition } = useDraggable(windowRef, handleRef);
@@ -67,7 +68,7 @@ export default function Window({ title, children, onClose, onFocus, zIndex, init
       windowStyles.top = '0px';
       windowStyles.left = '0px';
       windowStyles.width = '100vw';
-      windowStyles.height = '100vh';
+      windowStyles.height = 'calc(100vh - 40px)'; // Account for taskbar
   }
 
 
@@ -85,7 +86,7 @@ export default function Window({ title, children, onClose, onFocus, zIndex, init
       >
         <span className="text-sm font-bold text-primary-foreground select-none ml-1">{title}</span>
         <div className="flex items-center gap-1">
-          <button className="p-1 rounded-sm transition-colors bg-card/50 hover:bg-card/80"><Minus size={14} className="text-foreground" /></button>
+          <button onClick={onMinimize} className="p-1 rounded-sm transition-colors bg-card/50 hover:bg-card/80"><Minus size={14} className="text-foreground" /></button>
           <button onClick={handleMaximizeToggle} className="p-1 rounded-sm transition-colors bg-card/50 hover:bg-card/80">
             {isMaximized ? <ChevronsDownUp size={14} className="text-foreground" /> : <Square size={14} className="text-foreground" />}
           </button>

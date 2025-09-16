@@ -16,6 +16,7 @@ export type WindowInstance = {
   position: { x: number; y: number };
   size: { width: number, height: number };
   zIndex: number;
+  minimized: boolean;
 };
 
 export type PersonalInfo = {
@@ -75,4 +76,5 @@ export type CvContent = {
       
 
     
+
 
