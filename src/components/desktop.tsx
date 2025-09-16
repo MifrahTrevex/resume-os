@@ -23,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import BootScreen from './boot-screen';
 
 type TerminalLine = {
   type: 'input' | 'output' | 'system' | 'error';
@@ -708,6 +709,12 @@ export default function Desktop() {
   const [gameApps, setGameApps] = useState<App[]>(initialGameApps);
   const [powerState, setPowerState] = useState<PowerState>('running');
   const [powerMessage, setPowerMessage] = useState('');
+  const [booting, setBooting] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setBooting(false), 5000); // Adjust boot time here
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleGameToggle = (gameId: string) => {
     setGameApps(prev => prev.map(game => 
@@ -900,6 +907,10 @@ export default function Desktop() {
 
 
   const desktopApps = APPS.filter(app => !app.isFolderContent);
+
+   if (booting) {
+        return <BootScreen />;
+    }
 
    if (powerState === 'shutting_down' || powerState === 'restarting' || powerState === 'off') {
         return (
