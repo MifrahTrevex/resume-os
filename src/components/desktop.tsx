@@ -729,15 +729,6 @@ export default function Desktop() {
       finalApps = finalApps.filter(app => app.id !== 'game-manager');
     }
     
-    // Add Task Manager to the list of apps
-    finalApps.push({
-        id: 'task-manager',
-        name: 'Task Manager',
-        icon: ALL_APPS(cvContent, gameApps, handleGameToggle).find(a => a.id === 'task-manager')!.icon,
-        component: TaskManager,
-    });
-
-
     setApps(finalApps);
   }, [cvContent, gameApps, isAuthenticated]);
 
