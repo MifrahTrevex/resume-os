@@ -3,9 +3,13 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+type UserType = 'admin' | 'guest' | null;
+
 interface AuthContextType {
   isAuthenticated: boolean;
+  userType: UserType;
   login: (user: string, pass: string) => boolean;
+  guestLogin: () => boolean;
   logout: () => void;
   promptLogin: () => void;
 }
@@ -13,30 +17,38 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userType, setUserType] = useState<UserType>(null);
   const router = useRouter();
 
   useEffect(() => {
     // On initial load, check if the user is authenticated from session storage
-    const storedAuth = sessionStorage.getItem('isAuthenticated');
-    if (storedAuth === 'true') {
-      setIsAuthenticated(true);
+    const storedUserType = sessionStorage.getItem('userType') as UserType;
+    if (storedUserType) {
+      setUserType(storedUserType);
     }
   }, []);
+  
+  const isAuthenticated = userType !== null;
 
   const login = (user: string, pass: string) => {
     // Hardcoded credentials for simplicity
     if (user === 'admin' && pass === 'password') {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('isAuthenticated', 'true');
+      setUserType('admin');
+      sessionStorage.setItem('userType', 'admin');
       return true;
     }
     return false;
   };
+  
+  const guestLogin = () => {
+    setUserType('guest');
+    sessionStorage.setItem('userType', 'guest');
+    return true;
+  }
 
   const logout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem('isAuthenticated');
+    setUserType(null);
+    sessionStorage.removeItem('userType');
     router.push('/');
   };
   
@@ -45,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, promptLogin }}>
+    <AuthContext.Provider value={{ isAuthenticated, userType, login, guestLogin, logout, promptLogin }}>
       {children}
     </AuthContext.Provider>
   );
