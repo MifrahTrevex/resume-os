@@ -3,7 +3,9 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { useDraggable } from '@/hooks/use-draggable';
+import { useResizable } from '@/hooks/use-resizable';
 import { Minus, Square, X, ChevronsDownUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface WindowProps {
   title: string;
@@ -13,12 +15,16 @@ interface WindowProps {
   onMinimize: () => void;
   zIndex: number;
   initialSize: { width: number; height: number };
+  isActive: boolean;
 }
 
-export default function Window({ title, children, onClose, onFocus, onMinimize, zIndex, initialSize }: WindowProps) {
+export default function Window({ title, children, onClose, onFocus, onMinimize, zIndex, initialSize, isActive }: WindowProps) {
   const windowRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
+  
   const { position, setPosition } = useDraggable(windowRef, handleRef);
+  const { size, isResizing } = useResizable(windowRef, { initialSize });
+
   const [isMaximized, setIsMaximized] = useState(false);
   const prevPositionRef = useRef({ x: 0, y: 0 });
   const prevSizeRef = useRef(initialSize);
@@ -33,22 +39,16 @@ export default function Window({ title, children, onClose, onFocus, onMinimize, 
   const handleMaximizeToggle = () => {
     if (isMaximized) {
       // Restore
-      if (windowRef.current) {
-          windowRef.current.style.width = `${prevSizeRef.current.width}px`;
-          windowRef.current.style.height = `${prevSizeRef.current.height}px`;
-      }
       setPosition(prevPositionRef.current);
     } else {
       // Maximize
       prevPositionRef.current = position;
-       if (windowRef.current) {
+      if (windowRef.current) {
            prevSizeRef.current = {
                width: windowRef.current.offsetWidth,
                height: windowRef.current.offsetHeight,
            };
-           windowRef.current.style.width = '100%';
-           windowRef.current.style.height = '100%';
-       }
+      }
       setPosition({ x: 0, y: 0 });
     }
     setIsMaximized(!isMaximized);
@@ -56,26 +56,32 @@ export default function Window({ title, children, onClose, onFocus, onMinimize, 
   
   const windowStyles: React.CSSProperties = {
       zIndex: zIndex,
-      transform: 'translateZ(0)', // Promote to its own layer for smoother rendering
+      transform: 'translateZ(0)',
   };
 
   if (!isMaximized) {
       windowStyles.top = `${position.y}px`;
       windowStyles.left = `${position.x}px`;
-      windowStyles.width = `${initialSize.width}px`;
-      windowStyles.height = `${initialSize.height}px`;
+      windowStyles.width = `${size.width}px`;
+      windowStyles.height = `${size.height}px`;
   } else {
       windowStyles.top = '0px';
       windowStyles.left = '0px';
       windowStyles.width = '100vw';
-      windowStyles.height = 'calc(100vh - 40px)'; // Account for taskbar
+      windowStyles.height = 'calc(100vh - 40px)';
   }
 
 
   return (
     <div
       ref={windowRef}
-      className={`absolute flex flex-col bg-card border-2 border-border shadow-2xl transition-[width,height,top,left] duration-150 ease-out ${isMaximized ? 'rounded-none' : 'rounded-sm'}`}
+      className={cn(
+        'absolute flex flex-col bg-card shadow-lg transition-shadow duration-200',
+        isMaximized ? 'rounded-none' : 'rounded-sm',
+        isResizing ? 'transition-none' : 'transition-[width,height,top,left] duration-150 ease-out',
+        isActive ? 'border-primary shadow-primary/30' : 'border-border shadow-black/50',
+        'border-2'
+      )}
       style={windowStyles}
       onMouseDown={onFocus}
     >
@@ -95,8 +101,16 @@ export default function Window({ title, children, onClose, onFocus, onMinimize, 
           </button>
         </div>
       </div>
-      <div className="flex-grow overflow-auto bg-card">
+      <div className="flex-grow overflow-auto bg-card relative">
         {children}
+        {!isMaximized && (
+            <div 
+                className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+                style={{
+                    backgroundImage: `linear-gradient(to top left, hsl(var(--border)) 0%, hsl(var(--border)) 15%, transparent 15%)`
+                }}
+            ></div>
+        )}
       </div>
     </div>
   );

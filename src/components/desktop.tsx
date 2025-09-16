@@ -867,7 +867,7 @@ export default function Desktop() {
         return <Terminal openApp={openApp} cvContent={cvContent} initialCommand={terminalInitialCommand} />;
     }
     
-    if (['about', 'resume', 'projects', 'interests'].includes(app.id)) {
+    if (['about', 'resume', 'projects', 'interests', 'details'].includes(app.id)) {
         return <app.component onSave={handleContentUpdate} />;
     }
     
@@ -943,6 +943,7 @@ export default function Desktop() {
           onClose={() => closeWindow(win.id)}
           onFocus={() => focusWindow(win.id)}
           onMinimize={() => minimizeWindow(win.id)}
+          isActive={activeWindow === win.id}
         >
           {renderWindowContent(win)}
         </Window>

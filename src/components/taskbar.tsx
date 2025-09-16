@@ -11,15 +11,26 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 
 const BrokenGlassesIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="7" cy="12" r="5" stroke="hsl(var(--foreground))" strokeWidth="1.5"/>
-        <circle cx="17" cy="12" r="5" stroke="hsl(var(--foreground))" strokeWidth="1.5"/>
-        <path d="M12 12L17 12" stroke="hsl(var(--foreground))" strokeWidth="1"/>
-        <path d="M17 12L15 10" stroke="hsl(var(--primary))" strokeWidth="1"/>
-        <path d="M17 12L20 14" stroke="hsl(var(--primary))" strokeWidth="1"/>
-        <path d="M17 12L19 9" stroke="hsl(var(--primary))" strokeWidth="1"/>
-        <path d="M17 12L15.5 15" stroke="hsl(var(--primary))" strokeWidth="1"/>
-        <path d="M17 12L19.5 14.5" stroke="hsl(var(--primary))" strokeWidth="1"/>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="start-logo">
+        <defs>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <g style={{ filter: 'url(#glow)' }}>
+            <circle cx="7" cy="12" r="5" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+            <circle cx="17" cy="12" r="5" stroke="hsl(var(--foreground))" strokeWidth="1.5"/>
+            <path d="M12 12L17 12" stroke="hsl(var(--foreground))" strokeWidth="1"/>
+            <path d="M17 12L15 10" stroke="hsl(var(--primary))" strokeWidth="1"/>
+            <path d="M17 12L20 14" stroke="hsl(var(--primary))" strokeWidth="1"/>
+            <path d="M17 12L19 9" stroke="hsl(var(--primary))" strokeWidth="1"/>
+            <path d="M17 12L15.5 15" stroke="hsl(var(--primary))" strokeWidth="1"/>
+            <path d="M17 12L19.5 14.5" stroke="hsl(var(--primary))" strokeWidth="1"/>
+        </g>
     </svg>
 );
 
@@ -50,7 +61,7 @@ interface StartMenuProps {
 
 const StartMenu = ({ apps, onAppClick, onShutdown, onRestart, onClose }: StartMenuProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
-    const desktopApps = apps.filter(app => !['game-manager'].includes(app.id));
+    const desktopApps = apps.filter(app => !['game-manager'].includes(app.id) && !app.isFolderContent);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -113,7 +124,7 @@ export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, 
   };
 
   const filteredApps = apps.filter(app => 
-    app.name.toLowerCase().includes(searchQuery.toLowerCase()) && searchQuery
+    !app.isFolderContent && app.name.toLowerCase().includes(searchQuery.toLowerCase()) && searchQuery
   );
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -134,6 +145,22 @@ export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, 
 
   return (
     <>
+      <style jsx>{`
+        .start-logo {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                filter: url(#glow) drop-shadow(0 0 2px hsl(var(--primary)));
+                transform: scale(1);
+            }
+            50% {
+                filter: url(#glow) drop-shadow(0 0 5px hsl(var(--primary)));
+                transform: scale(1.1);
+            }
+        }
+      `}</style>
       {isMenuOpen && (
             <StartMenu
                 apps={apps}
@@ -163,6 +190,14 @@ export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, 
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         onFocus={() => setIsSearchOpen(true)}
+                        onBlur={() => {
+                            // Delay hiding so a click on a result can register
+                            setTimeout(() => {
+                                if (!document.activeElement?.closest('[data-radix-popper-content-wrapper]')) {
+                                    setIsSearchOpen(false)
+                                }
+                            }, 150)
+                        }}
                     />
                 </form>
             </PopoverTrigger>
