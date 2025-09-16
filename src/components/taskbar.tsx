@@ -6,7 +6,7 @@ import type { App, WindowInstance } from '@/lib/types';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { Input } from './ui/input';
-import { Power, RefreshCcw, Search, Wifi, Volume2, CalendarDays, X } from 'lucide-react';
+import { Power, RefreshCcw, Search, Wifi, Volume2, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 
@@ -105,7 +105,7 @@ interface TaskbarProps {
 export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, activeWindowId, onAppLaunch, onShutdown, onRestart }: TaskbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   const getAppIcon = (appId: string) => {
     const app = apps.find(a => a.id === appId);
@@ -121,8 +121,15 @@ export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, 
       if (filteredApps.length > 0) {
           onAppLaunch(filteredApps[0].id);
           setSearchQuery('');
+          setIsSearchOpen(false);
           (e.target as HTMLFormElement).querySelector('input')?.blur();
       }
+  }
+  
+  const handleAppLaunch = (appId: string) => {
+      onAppLaunch(appId);
+      setSearchQuery('');
+      setIsSearchOpen(false);
   }
 
   return (
@@ -146,7 +153,7 @@ export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, 
             <BrokenGlassesIcon />
         </Button>
 
-        <Popover open={isSearchFocused && searchQuery.length > 0}>
+        <Popover open={isSearchOpen && searchQuery.length > 0} onOpenChange={setIsSearchOpen}>
             <PopoverTrigger asChild>
                 <form onSubmit={handleSearchSubmit} className="relative flex-shrink-0 w-48">
                     <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -155,22 +162,18 @@ export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, 
                         className="h-8 pl-8 bg-background/50"
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        onFocus={() => setIsSearchFocused(true)}
-                        onBlur={() => setTimeout(() => setIsSearchFocused(false), 150)} // Delay to allow click on results
+                        onFocus={() => setIsSearchOpen(true)}
                     />
                 </form>
             </PopoverTrigger>
-            <PopoverContent className="w-48 p-1 mb-2">
+            <PopoverContent className="w-48 p-1 mb-2" onOpenAutoFocus={(e) => e.preventDefault()}>
                 {filteredApps.length > 0 ? (
                     filteredApps.map(app => (
                         <Button
                             key={app.id}
                             variant="ghost"
                             className="w-full justify-start"
-                            onClick={() => {
-                                onAppLaunch(app.id);
-                                setSearchQuery('');
-                            }}
+                            onClick={() => handleAppLaunch(app.id)}
                         >
                             <div className="w-5 h-5 mr-2">{app.icon}</div>
                             <span className="truncate">{app.name}</span>
@@ -199,7 +202,10 @@ export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, 
                         <span className="truncate">{win.title}</span>
                     </Button>
                      <button
-                        onClick={() => onWindowClose(win.id)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onWindowClose(win.id);
+                        }}
                         className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         aria-label={`Close ${win.title}`}
                     >
