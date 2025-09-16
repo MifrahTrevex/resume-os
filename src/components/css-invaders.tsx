@@ -62,18 +62,18 @@ const CSSInvaders = () => {
     return initialEnemies;
   };
   
-  const resetGame = () => {
+  const resetGame = useCallback(() => {
       setPlayerPosition({ x: GAME_WIDTH / 2 - PLAYER_WIDTH / 2 });
       setLasers([]);
       setEnemies(createEnemies());
       setScore(0);
       setGameOver(false);
-  };
+  }, []);
 
   // Initialize game
   useEffect(() => {
     resetGame();
-  }, []);
+  }, [resetGame]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     setKeysPressed((prev) => ({ ...prev, [e.key]: true }));
@@ -116,10 +116,10 @@ const CSSInvaders = () => {
     // Move player
     setPlayerPosition((prev) => {
       let newX = prev.x;
-      if (keysPressed['ArrowLeft']) {
+      if (keysPressed['ArrowLeft'] || keysPressed['a']) {
         newX = Math.max(0, prev.x - PLAYER_SPEED);
       }
-      if (keysPressed['ArrowRight']) {
+      if (keysPressed['ArrowRight'] || keysPressed['d']) {
         newX = Math.min(GAME_WIDTH - PLAYER_WIDTH, prev.x + PLAYER_SPEED);
       }
       return { x: newX };
@@ -127,13 +127,17 @@ const CSSInvaders = () => {
 
     // Move lasers, enemies and check for collisions
     setEnemies(currentEnemies => {
+        if (currentEnemies.length === 0) {
+            return createEnemies();
+        }
+        
         const updatedEnemies = currentEnemies.map(enemy => ({
             ...enemy,
             y: enemy.y + ENEMY_SPEED,
         }));
         
         // Check if any enemy reached the bottom
-        if (updatedEnemies.some(enemy => enemy.y + enemy.height >= GAME_HEIGHT)) {
+        if (updatedEnemies.some(enemy => enemy.y + enemy.height >= GAME_HEIGHT - PLAYER_WIDTH)) {
             setGameOver(true);
         }
 
@@ -198,18 +202,13 @@ const CSSInvaders = () => {
           style={{ 
               left: `${laser.x}px`, 
               top: `${laser.y}px`,
-              animation: 'none',
-              opacity: 1,
-              position: 'absolute',
-              height: '20px',
-              width: '4px',
-              backgroundColor: '#f00',
-              boxShadow: '0 0 10px #f00',
+              width: `${laser.width}px`,
+              height: `${laser.height}px`,
             }}
         ></div>
       ))}
       
-      <div className="enemies" style={{ animation: 'none', position: 'relative' }}>
+      <div className="enemies" style={{ position: 'relative' }}>
         {enemies.map((enemy) => (
           <div
             key={enemy.id}
@@ -217,7 +216,6 @@ const CSSInvaders = () => {
             style={{
               left: `${enemy.x}px`,
               top: `${enemy.y}px`,
-              animation: 'enemy-bob 2s ease-in-out infinite alternate'
             }}
           >
           </div>
