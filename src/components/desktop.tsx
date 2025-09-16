@@ -726,9 +726,15 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
   const [newItemName, setNewItemName] = useState('');
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item?: App } | null>(null);
   
-   const allApps = useRef(ALL_APPS(cvContent, gameApps, handleGameToggle));
+  const handleGameToggle = (gameId: string) => {
+    setGameApps(prev => prev.map(game => 
+        game.id === gameId ? { ...game, active: !game.active } : game
+    ));
+  };
 
-   useEffect(() => {
+  const allApps = useRef(ALL_APPS(cvContent, gameApps, handleGameToggle));
+
+  useEffect(() => {
     allApps.current = ALL_APPS(cvContent, gameApps, handleGameToggle);
     let finalApps = allApps.current.filter(app => !app.isFolderContent);
      if (!isAuthenticated) {
@@ -750,12 +756,6 @@ export default function Desktop({ powerState, setPowerState }: DesktopProps) {
         return () => clearTimeout(timer);
     }
   }, [booting]);
-
-  const handleGameToggle = (gameId: string) => {
-    setGameApps(prev => prev.map(game => 
-        game.id === gameId ? { ...game, active: !game.active } : game
-    ));
-  };
 
   const handleContentUpdate = (newContent: Partial<CvContent>) => {
     setCvContent(prev => ({ ...prev, ...newContent }));
