@@ -1,6 +1,7 @@
 "use server";
 
 import { interpretTerminalCommand } from "@/ai/flows/terminal-command-interpretation";
+import { interview, type InterviewInput } from "@/ai/flows/interview-flow";
 
 export async function handleCommand(command: string) {
   try {
@@ -13,4 +14,16 @@ export async function handleCommand(command: string) {
       reason: "An error occurred while processing the command.",
     };
   }
+}
+
+export async function handleInterview(input: InterviewInput) {
+    try {
+        const result = await interview(input);
+        return result;
+    } catch (error) {
+        console.error("Error with interview flow:", error);
+        return {
+            response: "Sorry, I encountered an error. Please try again.",
+        };
+    }
 }

@@ -5,23 +5,29 @@ import type { WindowInstance, CvContent } from '@/lib/types';
 import { APPS, initialCvContent } from '@/lib/content';
 import Window from './window';
 import DesktopIcon from './desktop-icon';
-import { handleCommand } from '@/lib/actions';
+import { handleCommand, handleInterview } from '@/lib/actions';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { LogOut, User } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import type { InterpretTerminalCommandOutput } from '@/ai/flows/terminal-command-interpretation';
+import type { InterviewOutput } from '@/ai/flows/interview-flow';
 
 type TerminalLine = {
   type: 'input' | 'output' | 'system' | 'error';
   content: string;
 };
 
-function Terminal({ openApp }: { openApp: (appId: 'about' | 'resume' | 'projects' | 'contact') => void }) {
+type Message = {
+    role: 'user' | 'model';
+    content: string;
+};
+
+function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' | 'projects' | 'contact') => void; cvContent: CvContent }) {
   const [lines, setLines] = useState<TerminalLine[]>([
     { type: 'system', content: `Dickens Okoth Otieno's Desktop v1.0` },
-    { type: 'system', content: `Welcome. Type 'help' for a list of commands.` },
   ]);
+  const [history, setHistory] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const endOfTerminalRef = useRef<HTMLDivElement>(null);
@@ -32,56 +38,45 @@ function Terminal({ openApp }: { openApp: (appId: 'about' | 'resume' | 'projects
 
   useEffect(scrollToBottom, [lines]);
 
-  const processAICommand = useCallback(async (command: string) => {
-    const result: InterpretTerminalCommandOutput = await handleCommand(command);
-    
-    let outputLines: TerminalLine[] = [{ type: 'output', content: result.reason }];
-
-    switch (result.action) {
-      case 'OPEN_RESUME':
-        openApp('resume');
-        break;
-      case 'SHOW_PROJECTS':
-        openApp('projects');
-        break;
-      case 'OPEN_LINK':
-        if (result.link) {
-          window.open(result.link, '_blank');
-          outputLines.push({ type: 'system', content: `Opening ${result.link}...` });
-        } else {
-          outputLines.push({ type: 'error', content: 'AI suggested a link, but none was provided.' });
-        }
-        break;
-      case 'INVALID':
-      default:
-        // The reason is already pushed
-        break;
-    }
-    setLines(prev => [...prev, ...outputLines]);
-  }, [openApp]);
+  const startInterview = useCallback(async () => {
+    setIsProcessing(true);
+    const result: InterviewOutput = await handleInterview({
+        cvContent: JSON.stringify(cvContent),
+        history: [],
+    });
+    const assistantMessage: Message = { role: 'model', content: result.response };
+    setHistory([assistantMessage]);
+    setLines(prev => [...prev, { type: 'output', content: result.response }]);
+    setIsProcessing(false);
+  }, [cvContent]);
   
+  useEffect(() => {
+    startInterview();
+  }, [startInterview]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isProcessing) return;
 
     const command = input.trim();
-    const newLines: TerminalLine[] = [{ type: 'input', content: command }];
-    setLines(prev => [...prev, ...newLines]);
+    const userMessage: Message = { role: 'user', content: command };
+    
+    setLines(prev => [...prev, { type: 'input', content: command }]);
     setInput('');
     setIsProcessing(true);
 
-    if (command.toLowerCase() === 'help') {
-        setLines(prev => [...prev, { type: 'output', content: `Available commands:
-- 'open resume' or 'show cv'
-- 'show projects' or 'portfolio'
-- 'open github' or 'linkedin'
-- 'clear' - to clear the terminal` }]);
-    } else if (command.toLowerCase() === 'clear') {
-        setLines([]);
-    } else {
-        await processAICommand(command);
-    }
+    const newHistory = [...history, userMessage];
+    setHistory(newHistory);
+    
+    const result = await handleInterview({
+        cvContent: JSON.stringify(cvContent),
+        history: newHistory,
+    });
+    
+    const assistantMessage: Message = { role: 'model', content: result.response };
+    setHistory(prev => [...prev, assistantMessage]);
+    setLines(prev => [...prev, { type: 'output', content: result.response }]);
+
     setIsProcessing(false);
   };
 
@@ -103,7 +98,7 @@ function Terminal({ openApp }: { openApp: (appId: 'about' | 'resume' | 'projects
           value={input}
           onChange={(e) => setInput(e.target.value)}
           className="bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground font-code flex-grow"
-          placeholder="Type a command..."
+          placeholder="Type your response..."
           autoFocus
           disabled={isProcessing}
         />
@@ -172,7 +167,7 @@ export default function Desktop() {
     if (!app) return null;
 
     if (appId === 'terminal') {
-      return <Terminal openApp={openApp} />;
+      return <Terminal openApp={openApp} cvContent={cvContent} />;
     }
 
     if (appId === 'about') {
