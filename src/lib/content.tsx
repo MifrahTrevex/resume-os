@@ -1,6 +1,6 @@
 
 import type { App, CvContent, Project } from './types';
-import React, { useState } from 'react';
+import React, from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -87,8 +87,8 @@ export const initialCvContent: CvContent = {
 
 const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: string) => void }) => {
     const { isAuthenticated } = useAuth();
-    const [isEditing, setIsEditing] = useState(false);
-    const [about, setAbout] = useState(content.about);
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [about, setAbout] = React.useState(content.about);
 
     const handleSave = () => {
         onSave(about);
@@ -121,8 +121,8 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
 
 const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: CvContent['resume']) => void }) => {
     const { isAuthenticated } = useAuth();
-    const [isEditing, setIsEditing] = useState(false);
-    const [resume, setResume] = useState(content.resume);
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [resume, setResume] = React.useState(content.resume);
     
     const handleSave = () => {
         onSave(resume);
@@ -222,8 +222,8 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
 
 const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (newProjects: Project[]) => void }) => {
     const { isAuthenticated } = useAuth();
-    const [isEditing, setIsEditing] = useState(false);
-    const [projects, setProjects] = useState(content.projects);
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [projects, setProjects] = React.useState(content.projects);
 
     const handleSave = () => {
         onSave(projects);
@@ -360,6 +360,7 @@ export const GAME_APPS: App[] = [
     { id: 'tic-tac-toe-game', name: 'Tic-Tac-Toe', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
     { id: 'guess-the-number-game', name: 'Guess The Number', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
     { id: 'netrun-game', name: 'NetRun', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
+    { id: 'mainframe-breach-game', name: 'Mainframe Breach', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
 ];
 
 export const APPS: App[] = [

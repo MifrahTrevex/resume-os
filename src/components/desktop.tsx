@@ -23,7 +23,7 @@ type Message = {
     content: string;
 };
 
-type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe' | 'css-invaders' | 'guess-the-number' | 'netrun';
+type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe' | 'css-invaders' | 'guess-the-number' | 'netrun' | 'mainframe-breach';
 
 const firewallRules = [
     "Rule 1: Deny all traffic from IP 192.168.1.100 (Known malicious actor).",
@@ -81,6 +81,16 @@ type Grid = (Node | null)[][];
 const GRID_SIZE = 6;
 // --- End NetRun Game Types ---
 
+// --- Mainframe Breach Game State ---
+type MainframeGameState = {
+    stage: 'find_ip' | 'find_vulnerability' | 'brute_force' | 'ssh_login' | 'get_flag' | 'won';
+    ip?: string;
+    vulnerability?: string;
+    password?: string;
+    loggedIn: boolean;
+};
+// --- End Mainframe Breach Game State ---
+
 function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: string) => void; cvContent: CvContent, initialCommand?: string }) {
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [history, setHistory] = useState<Message[]>([]);
@@ -106,6 +116,8 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
   const [startPos, setStartPos] = useState({ r: 0, c: 0 });
   const [endPos, setEndPos] = useState({ r: 0, c: 0 });
 
+  // Mainframe Breach State
+  const [mainframeState, setMainframeState] = useState<MainframeGameState | null>(null);
   
   const scrollToBottom = () => {
     endOfTerminalRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -144,6 +156,8 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
             handleGuess(lowerCaseCommand);
         } else if (gameMode === 'netrun') {
             handleNetRunMove(lowerCaseCommand);
+        } else if (gameMode === 'mainframe-breach') {
+            handleMainframeCommand(lowerCaseCommand);
         }
         
         setIsProcessing(false);
@@ -161,6 +175,8 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
             startGuessTheNumber();
         } else if (game === 'netrun') {
             startNetRun();
+        } else if (game === 'mainframe-breach') {
+            startMainframeBreach();
         } else {
              setLines(prev => [...prev, { type: 'error', content: `Unknown game: ${game}` }]);
         }
@@ -190,7 +206,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
                     { type: 'output', content: '  - "open github"        => Opens GitHub profile in a new tab.' },
                     { type: 'output', content: '  - "open linkedin"      => Opens LinkedIn profile in a new tab.' },
                     { type: 'output', content: '  - "play [game_name]" => Starts a game.' },
-                    { type: 'output', content: '      Games: firewall-defender, tic-tac-toe, guess-the-number, netrun' },
+                    { type: 'output', content: '      Games: firewall-defender, tic-tac-toe, guess-the-number, netrun, mainframe-breach' },
                     { type: 'output', content: '  - "help"               => Shows this help message.' },
                 ]);
                 break;
@@ -203,7 +219,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
     }
     
     setIsProcessing(false);
-  }, [gameMode, openApp, currentPacket, score, board, secretNumber, guesses, netRunGrid, startPos, endPos]);
+  }, [gameMode, openApp, currentPacket, score, board, secretNumber, guesses, netRunGrid, startPos, endPos, mainframeState]);
   
   useEffect(() => {
     if (!initialMessageDisplayed) {
@@ -226,6 +242,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
       setCurrentPacket(null);
       setBoard(Array(9).fill(null));
       setNetRunGrid(null);
+      setMainframeState(null);
       setHistory([]);
       setLines(prev => [
           ...prev,
@@ -532,6 +549,103 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
     }
   };
 
+  // --- Mainframe Breach Logic ---
+    const startMainframeBreach = () => {
+        setGameMode('mainframe-breach');
+        setMainframeState({
+            stage: 'find_ip',
+            loggedIn: false,
+        });
+        setLines(prev => [
+            ...prev,
+            { type: 'system', content: '--- Mainframe Breach ---' },
+            { type: 'system', content: 'Your objective is to gain access to the system and retrieve the flag.' },
+            { type: 'system', content: 'Start by enumerating the network. Type `help` for game commands.' },
+        ]);
+    };
+
+    const handleMainframeCommand = (command: string) => {
+        if (!mainframeState) return;
+
+        const parts = command.split(' ');
+        const baseCommand = parts[0];
+
+        if (mainframeState.loggedIn) {
+            if (baseCommand === 'ls') {
+                 setLines(prev => [...prev, { type: 'output', content: 'flag.txt   user.dat' }]);
+            } else if (baseCommand === 'cat' && parts[1] === 'flag.txt') {
+                 setLines(prev => [
+                     ...prev,
+                     { type: 'system', content: 'SUCCESS! Flag retrieved: {THM_FLAG_A3B7C9D2E1F0}' },
+                     { type: 'system', content: '--- YOU WIN! ---' },
+                 ]);
+                 setTimeout(exitGame, 1000);
+            } else {
+                 setLines(prev => [...prev, { type: 'error', content: 'Command not found. Available commands: ls, cat' }]);
+            }
+            return;
+        }
+
+        switch (mainframeState.stage) {
+            case 'find_ip':
+                if (command === 'help') {
+                     setLines(prev => [...prev, { type: 'output', content: 'Commands: scan network, read doc-24b' }]);
+                } else if (command === 'scan network') {
+                     setLines(prev => [...prev, { type: 'output', content: 'Scan complete. Found 1 host. No open ports detected. Found 1 leaked document: doc-24b' }]);
+                } else if (command === 'read doc-24b') {
+                     setLines(prev => [
+                         ...prev,
+                         { type: 'output', content: 'Document content: "Meeting notes - Finalized server setup on 10.10.121.217. All secure."' },
+                         { type: 'system', content: 'IP address found! Next step: find vulnerabilities.' },
+                     ]);
+                     setMainframeState({ ...mainframeState, stage: 'find_vulnerability', ip: '10.10.121.217' });
+                } else {
+                     setLines(prev => [...prev, { type: 'error', content: 'Unknown command. Try `help`.' }]);
+                }
+                break;
+            
+            case 'find_vulnerability':
+                if (command === `scan vulnerabilities ${mainframeState.ip}`) {
+                    setLines(prev => [
+                         ...prev,
+                         { type: 'output', content: `Scanning ${mainframeState.ip}...` },
+                         { type: 'output', content: 'Result: Port 22 (SSH) is open. Service appears to be using default credentials.' },
+                         { type: 'system', content: 'Vulnerability found! Next step: gain access.' },
+                     ]);
+                     setMainframeState({ ...mainframeState, stage: 'brute_force', vulnerability: 'SSH' });
+                } else {
+                     setLines(prev => [...prev, { type: 'error', content: `Unknown command. Try 'scan vulnerabilities ${mainframeState.ip}'` }]);
+                }
+                break;
+
+            case 'brute_force':
+                if (command === `brute_force ssh ${mainframeState.ip}`) {
+                    setLines(prev => [
+                         ...prev,
+                         { type: 'output', content: 'Initiating brute-force attack on SSH... credentials found!' },
+                         { type: 'output', content: 'user: admin, pass: admin123' },
+                         { type: 'system', content: 'Password found! Next step: log in.' },
+                     ]);
+                     setMainframeState({ ...mainframeState, stage: 'ssh_login', password: 'admin123' });
+                } else {
+                     setLines(prev => [...prev, { type: 'error', content: `Unknown command. Try 'brute_force ssh ${mainframeState.ip}'` }]);
+                }
+                break;
+            
+             case 'ssh_login':
+                if (command === `ssh admin@${mainframeState.ip}`) {
+                    setLines(prev => [
+                         ...prev,
+                         { type: 'output', content: 'Login successful! Welcome to the mainframe.' },
+                     ]);
+                     setMainframeState({ ...mainframeState, stage: 'get_flag', loggedIn: true });
+                } else {
+                     setLines(prev => [...prev, { type: 'error', content: `Unknown command. Try 'ssh admin@${mainframeState.ip}'` }]);
+                }
+                break;
+        }
+    };
+
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -544,7 +658,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
       <div className="flex-grow overflow-y-auto">
         {lines.map((line, index) => (
           <div key={index} className="flex gap-2">
-            {line.type === 'input' && <span className="text-primary">$</span>}
+            {line.type === 'input' && <span className="text-primary">{mainframeState?.loggedIn ? `admin@${mainframeState.ip}:~$` : '$'}</span>}
             <p className={`${line.type === 'error' ? 'text-destructive' : ''} ${line.content === 'AI is typing...' ? 'italic text-muted-foreground' : ''} whitespace-pre-wrap`}>
               {line.content}
             </p>
@@ -553,7 +667,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
         <div ref={endOfTerminalRef} />
       </div>
       <form onSubmit={handleSubmit} className="flex items-center gap-2 mt-2">
-        <span className="text-primary">$</span>
+        <span className="text-primary">{mainframeState?.loggedIn ? `admin@${mainframeState.ip}:~$` : '$'}</span>
         <Input
           type="text"
           value={input}
@@ -564,6 +678,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
             gameMode === 'tic-tac-toe' ? `Enter your move (1-9)...` :
             gameMode === 'guess-the-number' ? `Enter your guess...` :
             gameMode === 'netrun' ? `rotate r c...` :
+            gameMode === 'mainframe-breach' ? `Enter hacking command...` :
             `Type a command...`
           }
           autoFocus
