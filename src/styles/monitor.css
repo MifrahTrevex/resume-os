@@ -2,19 +2,34 @@
 .monitor {
   position: relative;
   width: 95vw;
-  height: 90vh;
+  height: auto;
+  aspect-ratio: 16 / 10;
   max-width: 1600px;
-  max-height: 900px;
-  background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background-color: #0d1117;
+  border: 1px solid #30363d;
   border-radius: 1rem;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 
-    0 0 50px hsl(var(--primary) / 0.1),
-    inset 0 0 15px hsl(var(--background) / 0.5);
+    0 0 80px hsl(var(--primary) / 0.15),
+    inset 0 0 15px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
+  transition: box-shadow 0.5s ease-in-out;
 }
+
+.monitor[data-state="running"] {
+    animation: monitor-glow 4s infinite alternate;
+}
+
+@keyframes monitor-glow {
+    from {
+        box-shadow: 0 0 60px hsl(var(--primary) / 0.1), inset 0 0 15px rgba(0,0,0,0.5);
+    }
+    to {
+        box-shadow: 0 0 80px hsl(var(--primary) / 0.2), inset 0 0 15px rgba(0,0,0,0.5);
+    }
+}
+
 
 .monitor-screen {
   flex-grow: 1;
@@ -22,8 +37,8 @@
   position: relative;
   overflow: hidden;
   border-radius: 0.25rem;
-  border: 2px solid hsl(var(--background));
-  box-shadow: inset 0 0 10px hsl(var(--background));
+  border: 2px solid #010409;
+  box-shadow: inset 0 0 10px #010409;
 }
 
 .monitor-screen > * {
@@ -33,17 +48,16 @@
 
 .monitor-stand {
   position: absolute;
-  bottom: -2rem;
+  bottom: -2.5rem;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) perspective(100px) rotateX(20deg);
   width: 25%;
-  height: 2rem;
-  background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  height: 3rem;
+  background: linear-gradient(to top, #0d1117, #161b22);
+  border: 1px solid #30363d;
   border-top: none;
   border-bottom-left-radius: 0.5rem;
   border-bottom-right-radius: 0.5rem;
-  box-shadow: inset 0 -5px 10px hsl(var(--background) / 0.5);
 }
 
 .monitor-stand-base {
@@ -53,61 +67,80 @@
   transform: translateX(-50%);
   width: 120%;
   height: 0.75rem;
-  background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background: #0d1117;
+  border: 1px solid #30363d;
   border-radius: 0.25rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
 }
 
 .monitor-brand {
   position: absolute;
-  bottom: 0.75rem;
+  bottom: 0.5rem;
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-headline);
   color: hsl(var(--foreground) / 0.3);
   font-size: 0.8rem;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.monitor-brand::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    right: -1.5rem;
-    transform: translateY(-50%);
-    width: 8px;
-    height: 8px;
+.power-button {
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
+    background-color: hsl(var(--primary) / 0.3);
+    border: 1px solid hsl(var(--primary) / 0.5);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.power-button:hover {
+    background-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.6);
+}
+
+.power-button[data-state="running"] {
     background-color: hsl(var(--primary));
-    box-shadow: 0 0 5px hsl(var(--primary) / 0.8);
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.8);
     animation: power-light-pulse 2s infinite;
 }
 
+.power-button[data-state="off"] {
+    background-color: #30363d;
+    border-color: #444;
+    cursor: default;
+}
+
+
 @keyframes power-light-pulse {
-    0%, 100% { opacity: 0.7; }
+    0%, 100% { opacity: 0.8; }
     50% { opacity: 1; }
 }
 
 @media (max-width: 768px) {
     .monitor {
         width: 100vw;
-        height: 100vh;
+        height: 100svh;
         max-width: 100%;
         max-height: 100%;
         border-radius: 0;
         padding: 0.5rem;
         border: none;
+        aspect-ratio: auto;
     }
 
     .monitor-screen {
         border-radius: 0;
     }
 
-    .monitor-stand, .monitor-stand-base {
+    .monitor-stand {
         display: none;
     }
     
     .monitor-brand {
-        bottom: -1rem; /* Hide it just off screen */
+        display: none;
     }
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -79,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, userType, login, logout, promptLogin, loading }}>
-      {loading ? <div>Loading...</div> : children}
+      {children}
     </AuthContext.Provider>
   );
 }

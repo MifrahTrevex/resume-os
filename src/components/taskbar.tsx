@@ -111,9 +111,10 @@ interface TaskbarProps {
   onAppLaunch: (appId: string) => void;
   onShutdown: () => void;
   onRestart: () => void;
+  onPowerButtonClick: () => void;
 }
 
-export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, activeWindowId, onAppLaunch, onShutdown, onRestart }: TaskbarProps) {
+export default function Taskbar({ windows, apps, onTaskbarClick, onWindowClose, activeWindowId, onAppLaunch, onShutdown, onRestart, onPowerButtonClick }: TaskbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);

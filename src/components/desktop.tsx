@@ -1138,9 +1138,8 @@ export default function Desktop() {
         onAppLaunch={openApp}
         onShutdown={() => setPowerState('confirming')}
         onRestart={() => setPowerState('confirming')}
+        onPowerButtonClick={() => setPowerState('confirming')}
       />
     </div>
   );
 }
-
-    

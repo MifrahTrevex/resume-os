@@ -27,17 +27,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-black flex items-center justify-center min-h-screen">
         <AuthProvider>
-          <div className="monitor">
-            <div className="monitor-screen">
-              <div className="crt-overlay"></div>
-              {children}
-            </div>
-            <div className="monitor-stand">
-                <div className="monitor-stand-base"></div>
-            </div>
-            <div className="monitor-brand">Fragment OS</div>
-          </div>
-          <Toaster />
+            {children}
         </AuthProvider>
       </body>
     </html>
