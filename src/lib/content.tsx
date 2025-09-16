@@ -77,13 +77,20 @@ export const initialCvContent: CvContent = {
         imageUrl: "",
         contact: {
             email: "dickenokoth@gmail.com",
-            linkedin: "www.linkedin.com/in/dickens-okoth-930147248",
+            linkedin: "https://www.linkedin.com/in/dickens-okoth-930147248",
             github: "https://github.com/MifrahTrevex",
             phone: "(+254) 792475055",
         },
     },
     about: `I am a motivated and adaptable IT professional with a strong passion for technology and problem-solving. I take pride in my ability to learn quickly, work well under pressure, and collaborate effectively with teams to deliver reliable solutions. My hands-on experience in network troubleshooting, system maintenance, and user support has helped me develop a practical approach to solving complex challenges. I am committed to continuous learning and growth, with the goal of applying innovative IT solutions that drive efficiency and support organizational success.
 `,
+    interests: [
+        "Exploring new technologies and open-source projects.",
+        "Watching sci-fi movies and series.",
+        "Playing strategy and puzzle-based video games.",
+        "Reading articles on cybersecurity and digital forensics.",
+        "Listening to tech podcasts.",
+    ],
     resume: {
         experience: [
             {
@@ -578,45 +585,76 @@ const ContactContent = ({ content }: { content: CvContent }) => {
     );
 };
 
+const InterestsContent = ({ content, onSave }: { content: CvContent; onSave: (newInterests: { interests: string[] }) => void }) => {
+    const { isAuthenticated } = useAuth();
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [interests, setInterests] = React.useState(content.interests.join('\n'));
+
+    const handleSave = () => {
+        onSave({ interests: interests.split('\n').filter(line => line.trim() !== '') });
+        setIsEditing(false);
+    };
+
+    return (
+        <ScrollArea className="h-full">
+            <div className="p-4 space-y-4">
+                 <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-lg font-bold font-headline text-foreground">Personal Interests</h2>
+                    {isAuthenticated && !isEditing && (
+                        <Button onClick={() => setIsEditing(true)} size="sm" variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit</Button>
+                    )}
+                    {isAuthenticated && isEditing && (
+                        <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                            <Button onClick={handleSave}>Save</Button>
+                        </div>
+                    )}
+                </div>
+                
+                {isEditing && isAuthenticated ? (
+                    <Textarea 
+                        value={interests}
+                        onChange={(e) => setInterests(e.target.value)}
+                        className="h-48"
+                        placeholder="Enter each interest on a new line."
+                    />
+                ) : (
+                    <ul className="list-disc list-inside space-y-1">
+                        {content.interests.map((interest, index) => (
+                            <li key={index}>{interest}</li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        </ScrollArea>
+    );
+};
+
 
 const GamesFolderContent = React.memo(({ openApp, games }: { openApp: (appId: string) => void; games: App[] }) => {
     const { isAuthenticated } = useAuth();
-    const ICONS_PER_ROW = 4;
-    const ICON_WIDTH = 96;
-    const ICON_HEIGHT = 96;
-    const PADDING = 16;
-
     const visibleGames = isAuthenticated ? games : games.filter(g => g.active);
 
     return (
-        <div className="relative p-4 h-full w-full">
-            {visibleGames.map((app, index) => {
-                const row = Math.floor(index / ICONS_PER_ROW);
-                const col = index % ICONS_PER_ROW;
-                const initialPosition = {
-                    x: col * (ICON_WIDTH + PADDING),
-                    y: row * (ICON_HEIGHT + PADDING),
-                };
-                return (
-                    <div key={app.id} className="relative">
-                        <DesktopIcon
-                            name={app.name}
-                            icon={app.icon}
-                            onClick={() => openApp(app.id)}
-                            initialPosition={initialPosition}
-                        />
-                        {isAuthenticated && !app.active && (
-                            <div className="absolute top-0 right-0 p-1 bg-destructive rounded-full text-destructive-foreground text-xs" style={{ top: initialPosition.y, left: initialPosition.x + ICON_WIDTH - 20}}>
-                                Off
-                            </div>
-                        )}
-                    </div>
-                );
-            })}
+        <div className="p-4 h-full w-full grid grid-cols-4 gap-4 content-start">
+            {visibleGames.map((app) => (
+                <button
+                    key={app.id}
+                    onClick={() => openApp(app.id)}
+                    className="relative flex flex-col items-center justify-start gap-1 p-2 rounded-md w-24 h-24 text-center text-white/90 transition-colors hover:bg-white/10 focus:bg-white/20 focus:outline-none focus:ring-2 focus:ring-ring/50"
+                >
+                    <div className="w-16 h-16 flex items-center justify-center pointer-events-none">{app.icon}</div>
+                    <span className="text-sm select-none bg-background/50 px-1 py-0.5 rounded-sm pointer-events-none">{app.name}</span>
+                    {isAuthenticated && !app.active && (
+                        <div className="absolute top-1 right-1 p-1 bg-destructive rounded-full text-destructive-foreground text-xs leading-none">
+                            Off
+                        </div>
+                    )}
+                </button>
+            ))}
         </div>
     );
 });
-
 GamesFolderContent.displayName = 'GamesFolderContent';
 
 const GameManagerContent = ({ games, onToggle }: { games: App[], onToggle: (gameId: string) => void }) => {
@@ -648,6 +686,26 @@ const GameManagerContent = ({ games, onToggle }: { games: App[], onToggle: (game
     );
 };
 
+const PersonalFolderContent = ({ openApp }: { openApp: (appId: string) => void; }) => {
+    const apps = [
+        { id: 'interests', name: 'Interests.txt', icon: <FileIcon color="#a7f3d0" /> },
+    ];
+
+    return (
+         <div className="p-4 h-full w-full grid grid-cols-4 gap-4 content-start">
+            {apps.map((app) => (
+                <button
+                    key={app.id}
+                    onClick={() => openApp(app.id)}
+                    className="relative flex flex-col items-center justify-start gap-1 p-2 rounded-md w-24 h-24 text-center text-white/90 transition-colors hover:bg-white/10 focus:bg-white/20 focus:outline-none focus:ring-2 focus:ring-ring/50"
+                >
+                    <div className="w-16 h-16 flex items-center justify-center pointer-events-none">{app.icon}</div>
+                    <span className="text-sm select-none bg-background/50 px-1 py-0.5 rounded-sm pointer-events-none">{app.name}</span>
+                </button>
+            ))}
+        </div>
+    );
+}
 
 const PlaceholderTerminal = () => React.Fragment;
 
@@ -667,6 +725,8 @@ export const ALL_APPS: (cvContent: CvContent, games: App[], onGameToggle: (gameI
     { id: 'resume', name: 'Resume.pdf', icon: <FileIcon color="#fecaca" />, component: (props: any) => <ResumeContent {...props} content={cvContent} /> },
     { id: 'projects', name: 'Projects', icon: <FolderIcon />, component: (props: any) => <ProjectsContent {...props} content={cvContent} /> },
     { id: 'contact', name: 'Contact', icon: <FolderIcon />, component: () => <ContactContent content={cvContent} /> },
+    { id: 'personal', name: 'Personal', icon: <FolderIcon />, component: PersonalFolderContent },
+    { id: 'interests', name: 'Interests.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <InterestsContent {...props} content={cvContent} />, isFolderContent: true },
     { id: 'terminal', name: 'Terminal', icon: <TerminalAppIcon />, component: PlaceholderTerminal },
     { id: 'games', name: 'Games', icon: <FolderIcon />, component: (props: any) => <GamesFolderContent {...props} games={games} /> },
     { id: 'game-manager', name: 'Game Manager', icon: <AdminIcon />, component: () => <GameManagerContent games={games} onToggle={onGameToggle} /> },

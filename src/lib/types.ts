@@ -6,7 +6,8 @@ export type App = {
   icon: React.ReactNode;
   component: React.ComponentType<any>;
   isTerminal?: boolean;
-  active?: boolean; // Add active state for games
+  active?: boolean;
+  isFolderContent?: boolean;
 };
 
 export type WindowInstance = {
@@ -67,14 +68,7 @@ export type Project = {
 export type CvContent = {
   personalInfo: PersonalInfo;
   about: string;
+  interests: string[];
   resume: ResumeContent;
   projects: Project[];
 };
-
-    
-
-      
-
-    
-
-

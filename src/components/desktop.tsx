@@ -708,6 +708,7 @@ export default function Desktop() {
   const [gameApps, setGameApps] = useState<App[]>(initialGameApps);
   const [powerState, setPowerState] = useState<PowerState>('running');
   const [powerMessage, setPowerMessage] = useState('');
+  const [openedFolders, setOpenedFolders] = useState<Record<string, string>>({});
 
   const handleGameToggle = (gameId: string) => {
     setGameApps(prev => prev.map(game => 
@@ -739,7 +740,16 @@ export default function Desktop() {
     };
 
 
-  const openApp = useCallback((appId: string) => {
+  const openApp = useCallback((appId: string, parentFolderId?: string) => {
+    const app = APPS.find(a => a.id === appId);
+    if (!app) return;
+
+    if (app.isFolderContent && parentFolderId) {
+        setOpenedFolders(prev => ({ ...prev, [parentFolderId]: appId }));
+        focusWindow(parentFolderId);
+        return;
+    }
+
     const gameApp = gameApps.find(g => g.id === appId);
     const isTerminalGame = gameApp && gameApp.isTerminal;
 
@@ -750,15 +760,15 @@ export default function Desktop() {
         if (terminalWindow) {
             focusWindow(terminalWindow.id);
         } else {
-            const app = APPS.find(a => a.id === 'terminal');
-             if (!app) return;
+            const terminalApp = APPS.find(a => a.id === 'terminal');
+             if (!terminalApp) return;
 
             const newZIndex = zIndexCounter.current + 1;
             zIndexCounter.current = newZIndex;
             const newWindow: WindowInstance = {
               id: `terminal-${Date.now()}`,
               appId: 'terminal',
-              title: app.name,
+              title: terminalApp.name,
               position: { x: 50 + windows.length * 20, y: 50 + windows.length * 20 },
               size: { width: 640, height: 480 },
               zIndex: newZIndex,
@@ -770,14 +780,11 @@ export default function Desktop() {
         return;
     }
       
-    const existingWindow = windows.find(w => w.appId === appId);
-    if (existingWindow) {
-      focusWindow(existingWindow.id);
+    const existingWindowId = Object.keys(openedFolders).find(key => openedFolders[key] === appId) || windows.find(w => w.appId === appId)?.id;
+    if (existingWindowId) {
+      focusWindow(existingWindowId);
       return;
     }
-
-    const app = APPS.find(a => a.id === appId);
-    if (!app) return;
 
     const newZIndex = zIndexCounter.current + 1;
     zIndexCounter.current = newZIndex;
@@ -792,7 +799,7 @@ export default function Desktop() {
     };
     setWindows(prev => [...prev, newWindow]);
     setActiveWindow(newWindow.id);
-  }, [windows, gameApps, APPS]);
+  }, [windows, gameApps, APPS, openedFolders]);
 
   useEffect(() => {
       if (terminalInitialCommand && windows.some(w => w.appId === 'terminal')) {
@@ -805,6 +812,13 @@ export default function Desktop() {
     setWindows(prev => prev.filter(w => w.id !== id));
     if (activeWindow === id) {
       setActiveWindow(null);
+    }
+    if (openedFolders[id]) {
+        setOpenedFolders(prev => {
+            const newState = {...prev};
+            delete newState[id];
+            return newState;
+        })
     }
   };
 
@@ -845,24 +859,26 @@ export default function Desktop() {
 
 
   const renderWindowContent = (win: WindowInstance) => {
-    const app = APPS.find(a => a.id === win.appId);
+    const openedAppId = openedFolders[win.id] || win.appId;
+    const app = APPS.find(a => a.id === openedAppId);
     if (!app) return null;
 
     if (win.appId === 'terminal') {
         return <Terminal openApp={openApp} cvContent={cvContent} initialCommand={terminalInitialCommand} />;
     }
     
-    if (['about', 'resume', 'projects'].includes(win.appId)) {
+    if (['about', 'resume', 'projects', 'interests'].includes(app.id)) {
         return <app.component onSave={handleContentUpdate} />;
     }
     
-    return <app.component openApp={openApp} />;
+    return <app.component openApp={(appId: string) => openApp(appId, win.id)} />;
   };
 
   const desktopApps = APPS.filter(app => {
+      if (app.isFolderContent) return false;
       if (app.id === 'game-manager') return isAuthenticated;
-      if (app.id === 'games') return true; // Always show games folder
-      return !initialGameApps.some(g => g.id === app.id) && app.id !== 'game-manager' && app.id !== 'games';
+      if (['games', 'personal'].includes(app.id)) return true;
+      return !initialGameApps.some(g => g.id === app.id) && !['game-manager', 'games', 'personal'].includes(app.id);
   });
 
    if (powerState === 'shutting_down' || powerState === 'restarting' || powerState === 'off') {
@@ -921,7 +937,7 @@ export default function Desktop() {
       {windows.filter(w => !w.minimized).map(win => (
         <Window
           key={win.id}
-          title={win.title}
+          title={openedFolders[win.id] ? APPS.find(a => a.id === openedFolders[win.id])?.name || win.title : win.title}
           zIndex={win.zIndex}
           initialSize={win.size}
           onClose={() => closeWindow(win.id)}
