@@ -11,33 +11,31 @@ import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 function AdminLoginForm({ onLoginSuccess }: { onLoginSuccess: () => void }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(username, password)) {
+    setLoading(true);
+    const success = await login(email, password);
+    setLoading(false);
+    if (success) {
       onLoginSuccess();
-    } else {
-      toast({
-        title: 'Login Failed',
-        description: 'Invalid username or password.',
-        variant: 'destructive',
-      });
     }
   };
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="email">Email</Label>
         <Input
-          id="username"
-          type="text"
-          placeholder="admin"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          id="email"
+          type="email"
+          placeholder="admin@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
       </div>
@@ -52,8 +50,8 @@ function AdminLoginForm({ onLoginSuccess }: { onLoginSuccess: () => void }) {
           required
         />
       </div>
-      <Button type="submit" className="w-full">
-        Login
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Logging in...' : 'Login'}
       </Button>
     </form>
   );
