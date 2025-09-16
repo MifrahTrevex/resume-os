@@ -23,19 +23,83 @@ type Message = {
     content: string;
 };
 
+type GameMode = 'interview' | 'firewall-defender';
+
+const firewallRules = [
+    "Rule 1: Deny all traffic from IP 192.168.1.100 (Known malicious actor).",
+    "Rule 2: Deny all traffic on Port 23 (Telnet - insecure).",
+    "Rule 3: Allow all other traffic.",
+];
+
+const packetTypes = {
+    SAFE: 'SAFE',
+    MALICIOUS_IP: 'MALICIOUS_IP',
+    MALICIOUS_PORT: 'MALICIOUS_PORT',
+} as const;
+
+type PacketType = typeof packetTypes[keyof typeof packetTypes];
+
+type Packet = {
+    sourceIp: string;
+    port: number;
+    type: PacketType;
+    isMalicious: boolean;
+};
+
+function generatePacket(): Packet {
+    const packetTypeKeys = Object.keys(packetTypes) as (keyof typeof packetTypes)[];
+    const randomType = packetTypeKeys[Math.floor(Math.random() * packetTypeKeys.length)];
+
+    let sourceIp = `192.168.1.${Math.floor(Math.random() * 254) + 1}`;
+    let port = Math.floor(Math.random() * 1000) + 1;
+    let isMalicious = false;
+
+    switch(randomType) {
+        case 'MALICIOUS_IP':
+            sourceIp = '192.168.1.100';
+            isMalicious = true;
+            break;
+        case 'MALICIOUS_PORT':
+            port = 23;
+            isMalicious = true;
+            break;
+        case 'SAFE':
+             // Ensure safe packets don't accidentally match malicious rules
+            if (sourceIp === '192.168.1.100') sourceIp = '192.168.1.101';
+            if (port === 23) port = 24;
+            break;
+    }
+
+    return { sourceIp, port, type: randomType, isMalicious };
+}
+
+
 function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' | 'projects' | 'contact') => void; cvContent: CvContent }) {
-  const [lines, setLines] = useState<TerminalLine[]>([
-    { type: 'system', content: `Dickens Okoth Otieno's Desktop v1.0` },
-    { type: 'system', content: `Type 'start' to begin your interview.` },
-  ]);
+  const [lines, setLines] = useState<TerminalLine[]>([]);
   const [history, setHistory] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const endOfTerminalRef = useRef<HTMLDivElement>(null);
+  const [initialMessageDisplayed, setInitialMessageDisplayed] = useState(false);
+  const [gameMode, setGameMode] = useState<GameMode>('interview');
+  const [score, setScore] = useState(0);
+  const [currentPacket, setCurrentPacket] = useState<Packet | null>(null);
+
 
   const scrollToBottom = () => {
     endOfTerminalRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+  
+  useEffect(() => {
+    if (!initialMessageDisplayed) {
+      setLines([
+        { type: 'system', content: `Dickens Okoth Otieno's Desktop v1.0` },
+        { type: 'system', content: `Type 'start' to begin your interview, or type 'play firewall-defender' to play a game.` },
+      ]);
+      setInitialMessageDisplayed(true);
+    }
+  }, [initialMessageDisplayed]);
+
 
   useEffect(scrollToBottom, [lines]);
 
@@ -60,16 +124,97 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     setIsProcessing(false);
   }, [cvContent]);
   
+  const startFirewallGame = () => {
+      setGameMode('firewall-defender');
+      setScore(0);
+      setLines(prev => [
+          ...prev,
+          { type: 'system', content: 'Starting Firewall Defender...' },
+          { type: 'system', content: 'Objective: Analyze incoming packets and decide whether to `allow` or `deny` them based on the rules.' },
+          { type: 'system', content: '--- FIREWALL RULES ---' },
+          ...firewallRules.map(rule => ({ type: 'system', content: rule })),
+          { type: 'system', content: '---' },
+          { type: 'system', content: `Type 'allow' or 'deny'. Type 'exit' to quit.` },
+      ]);
+      askNextPacket();
+  }
 
+  const askNextPacket = () => {
+      const newPacket = generatePacket();
+      setCurrentPacket(newPacket);
+      setLines(prev => [
+          ...prev,
+          { type: 'system', content: '--- New Incoming Packet ---' },
+          { type: 'output', content: `Source IP: ${newPacket.sourceIp}` },
+          { type: 'output', content: `Port: ${newPacket.port}` }
+      ]);
+  }
+
+  const handleFirewallGuess = (guess: 'allow' | 'deny') => {
+      if (!currentPacket) return;
+
+      const isCorrect = (guess === 'allow' && !currentPacket.isMalicious) || (guess === 'deny' && currentPacket.isMalicious);
+      
+      if (isCorrect) {
+          const newScore = score + 1;
+          setScore(newScore);
+          setLines(prev => [
+              ...prev,
+              { type: 'system', content: `Correct! Packet handled. Your score is now ${newScore}.` }
+          ]);
+          askNextPacket();
+      } else {
+          setLines(prev => [
+              ...prev,
+              { type: 'error', content: `Incorrect! Malicious packet breached the firewall!` },
+              { type: 'error', content: `--- GAME OVER ---` },
+              { type: 'error', content: `Final Score: ${score}` },
+              { type: 'system', content: `Returning to interview mode. Type 'start' to begin.` }
+          ]);
+          setGameMode('interview');
+          setCurrentPacket(null);
+          setHistory([]);
+      }
+  }
+
+  const exitGame = () => {
+      setGameMode('interview');
+      setCurrentPacket(null);
+      setHistory([]);
+      setLines(prev => [
+          ...prev,
+          { type: 'system', content: 'Exited game. Returning to interview mode.' },
+          { type: 'system', content: `Type 'start' to begin your interview.` }
+      ]);
+  }
+  
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isProcessing) return;
 
-    const command = input.trim();
+    const command = input.trim().toLowerCase();
+    const newLines: TerminalLine[] = [...lines, { type: 'input', content: command }];
+    setLines(newLines);
+    setInput('');
     
-    if (command.toLowerCase() === 'start' && history.length === 0) {
-      setLines(prev => [...prev, { type: 'input', content: command }, { type: 'output', content: "AI is typing..." }]);
-      setInput('');
+    if (command === 'play firewall-defender') {
+        startFirewallGame();
+        return;
+    }
+    
+    if (gameMode === 'firewall-defender') {
+        if (command === 'allow' || command === 'deny') {
+            handleFirewallGuess(command);
+        } else if (command === 'exit') {
+            exitGame();
+        } else {
+            setLines(prev => [...prev, { type: 'error', content: `Unknown command in game mode. Type 'allow', 'deny', or 'exit'.` }]);
+        }
+        return;
+    }
+
+    if (command === 'start' && history.length === 0) {
+      setLines(prev => [...prev, { type: 'output', content: "AI is typing..." }]);
       await startInterview();
       return;
     }
@@ -78,8 +223,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
 
     const userMessage: Message = { role: 'user', content: command };
     
-    setLines(prev => [...prev, { type: 'input', content: command }, { type: 'output', content: "AI is typing..." }]);
-    setInput('');
+    setLines(prev => [...prev, { type: 'output', content: "AI is typing..." }]);
     setIsProcessing(true);
 
     const newHistory = [...history, userMessage];
@@ -94,14 +238,14 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     setHistory(prev => [...prev, assistantMessage]);
 
     setLines(prev => {
-        const newLines = [...prev];
-        const typingIndex = newLines.findLastIndex(line => line.content === "AI is typing...");
+        const currentLines = [...prev];
+        const typingIndex = currentLines.findLastIndex(line => line.content === "AI is typing...");
         if (typingIndex !== -1) {
-            newLines[typingIndex] = { type: 'output', content: result.response };
+            currentLines[typingIndex] = { type: 'output', content: result.response };
         } else {
-             newLines.push({ type: 'output', content: result.response });
+             currentLines.push({ type: 'output', content: result.response });
         }
-        return newLines;
+        return currentLines;
     });
 
     setIsProcessing(false);
@@ -113,7 +257,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
         {lines.map((line, index) => (
           <div key={index} className="flex gap-2">
             {line.type === 'input' && <span className="text-primary">$</span>}
-            <p className={`${line.type === 'error' ? 'text-destructive' : ''} ${line.content === 'AI is typing...' ? 'italic text-muted-foreground' : ''}`}>
+            <p className={`${line.type === 'error' ? 'text-destructive' : ''} ${line.content === 'AI is typing...' ? 'italic text-muted-foreground' : ''} whitespace-pre-wrap`}>
               {line.content}
             </p>
           </div>
@@ -127,7 +271,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           className="bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground font-code flex-grow"
-          placeholder="Type your response..."
+          placeholder={gameMode === 'firewall-defender' ? `Type 'allow' or 'deny'...` : 'Type your response...'}
           autoFocus
           disabled={isProcessing}
         />
@@ -253,3 +397,5 @@ export default function Desktop() {
     </div>
   );
 }
+
+    
