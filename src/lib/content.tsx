@@ -14,6 +14,7 @@ import HackerClicker from '@/components/hacker-clicker';
 import SystemOverride from '@/components/system-override';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -98,26 +99,56 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
     }
     
     return (
-        <div className="p-4 h-full flex flex-col">
-            <div className="flex justify-between items-center mb-2">
-                <h2 className="text-xl font-bold font-headline text-foreground">About Me</h2>
-                {isAuthenticated && !isEditing && (
-                    <Button onClick={() => setIsEditing(true)}>Edit</Button>
-                )}
-                {isAuthenticated && isEditing && (
-                    <Button onClick={handleSave}>Save</Button>
-                )}
+        <ScrollArea className="h-full">
+            <div className="p-4 h-full flex flex-col">
+                <Card className="bg-card/50">
+                    <CardHeader className="items-center text-center">
+                        <Image
+                            src="https://picsum.photos/seed/1/128/128"
+                            alt="Profile Picture"
+                            width={128}
+                            height={128}
+                            className="rounded-full border-4 border-primary/50"
+                            data-ai-hint="professional headshot"
+                        />
+                        <CardTitle className="text-2xl pt-2">{content.personalInfo.name}</CardTitle>
+                        <CardDescription>{content.personalInfo.title}</CardDescription>
+                         <div className="flex items-center gap-4 pt-2">
+                            <Button asChild variant="ghost" size="icon">
+                                <a href={content.personalInfo.contact.linkedin} target="_blank" rel="noopener noreferrer">
+                                    <Linkedin />
+                                </a>
+                            </Button>
+                             <Button asChild variant="ghost" size="icon">
+                                <a href={content.personalInfo.contact.github} target="_blank" rel="noopener noreferrer">
+                                    <Github />
+                                </a>
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                        <div className="flex justify-between items-center mb-2">
+                            <h2 className="text-lg font-bold font-headline text-foreground">About Me</h2>
+                            {isAuthenticated && !isEditing && (
+                                <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                            )}
+                            {isAuthenticated && isEditing && (
+                                <Button onClick={handleSave}>Save</Button>
+                            )}
+                        </div>
+                        {isEditing && isAuthenticated ? (
+                             <Textarea 
+                                value={about}
+                                onChange={(e) => setAbout(e.target.value)}
+                                className="flex-grow bg-input text-accent font-code border-border focus:ring-ring h-48"
+                             />
+                        ) : (
+                            <p className="whitespace-pre-wrap text-sm">{content.about}</p>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
-            {isEditing && isAuthenticated ? (
-                 <Textarea 
-                    value={about}
-                    onChange={(e) => setAbout(e.target.value)}
-                    className="flex-grow bg-input text-accent font-code border-border focus:ring-ring"
-                 />
-            ) : (
-                <p className="whitespace-pre-wrap flex-grow">{content.about}</p>
-            )}
-        </div>
+        </ScrollArea>
     );
 };
 
@@ -319,11 +350,13 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
                                     <div className="flex flex-wrap gap-2">
                                         {proj.tech.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
                                     </div>
-                                    <Button asChild variant="link" className="p-0 h-auto">
-                                        <a href={proj.link} target="_blank" rel="noopener noreferrer">
-                                            View Project <ExternalLink className="ml-2 h-4 w-4" />
-                                        </a>
-                                    </Button>
+                                    {proj.link && (
+                                        <Button asChild variant="link" className="p-0 h-auto">
+                                            <a href={proj.link} target="_blank" rel="noopener noreferrer">
+                                                View Project <ExternalLink className="ml-2 h-4 w-4" />
+                                            </a>
+                                        </Button>
+                                    )}
                                 </CardFooter>
                             </Card>
                         ))}
@@ -436,3 +469,5 @@ export const APPS: App[] = [
 ];
 
     
+
+      

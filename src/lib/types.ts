@@ -50,7 +50,7 @@ export type Project = {
     title: string;
     description: string;
     tech: string[];
-    link: string;
+    link?: string;
 }
 
 export type CvContent = {
@@ -61,3 +61,5 @@ export type CvContent = {
 };
 
     
+
+      
