@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { useDraggable } from '@/hooks/use-draggable';
 import { cn } from '@/lib/utils';
-import { X } from 'lucide-react';
+import { Minus, Square, X } from 'lucide-react';
 
 interface WindowProps {
   title: string;
@@ -22,7 +22,7 @@ export default function Window({ title, children, onClose, onFocus, zIndex, init
   return (
     <div
       ref={windowRef}
-      className="absolute flex flex-col bg-card border border-border shadow-2xl rounded-lg"
+      className="absolute flex flex-col bg-card border-2 border-t-white/20 border-l-white/20 border-b-black/50 border-r-black/50 shadow-2xl rounded-sm"
       style={{
         top: `${position.y}px`,
         left: `${position.x}px`,
@@ -35,14 +35,18 @@ export default function Window({ title, children, onClose, onFocus, zIndex, init
     >
       <div
         ref={handleRef}
-        className="flex items-center justify-between p-2 bg-primary rounded-t-lg cursor-grab active:cursor-grabbing"
+        className="flex items-center justify-between p-1 bg-gradient-to-b from-primary to-blue-700 rounded-t-sm cursor-grab active:cursor-grabbing"
       >
-        <span className="text-sm font-bold text-primary-foreground select-none">{title}</span>
-        <button onClick={onClose} className="p-1 rounded-full hover:bg-destructive/80">
-          <X size={14} className="text-primary-foreground" />
-        </button>
+        <span className="text-sm font-bold text-primary-foreground select-none ml-1">{title}</span>
+        <div className="flex items-center gap-1">
+          <button className="p-1 rounded-sm bg-card/50 hover:bg-card/80"><Minus size={14} className="text-primary-foreground" /></button>
+          <button className="p-1 rounded-sm bg-card/50 hover:bg-card/80"><Square size={14} className="text-primary-foreground" /></button>
+          <button onClick={onClose} className="p-1 rounded-sm bg-red-500/80 hover:bg-red-500">
+            <X size={14} className="text-primary-foreground" />
+          </button>
+        </div>
       </div>
-      <div className="flex-grow overflow-auto bg-background/80 backdrop-blur-sm rounded-b-lg">
+      <div className="flex-grow overflow-auto bg-card">
         {children}
       </div>
     </div>
