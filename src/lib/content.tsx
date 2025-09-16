@@ -101,7 +101,7 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
                  <Textarea 
                     value={about}
                     onChange={(e) => setAbout(e.target.value)}
-                    className="flex-grow bg-black text-green-400 font-code border-green-700 focus:ring-green-500"
+                    className="flex-grow bg-black text-slate-100 font-code border-slate-700 focus:ring-amber-400"
                  />
             ) : (
                 <p className="whitespace-pre-wrap flex-grow">{content.about}</p>
@@ -145,29 +145,29 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                     <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
                     {resume.experience.map((job, i) => (
                         <div key={i} className="space-y-2 border-b border-border pb-4 mb-4">
-                             <Label className="text-green-400">Role</Label>
+                             <Label className="text-amber-400">Role</Label>
                              <Input 
                                 value={job.role} 
                                 onChange={e => handleExperienceChange(i, 'role', e.target.value)}
-                                className="bg-black text-green-400 font-code border-green-700"
+                                className="bg-black text-slate-100 font-code border-slate-700"
                             />
-                            <Label className="text-green-400">Company</Label>
+                            <Label className="text-amber-400">Company</Label>
                              <Input 
                                 value={job.company} 
                                 onChange={e => handleExperienceChange(i, 'company', e.target.value)}
-                                className="bg-black text-green-400 font-code border-green-700"
+                                className="bg-black text-slate-100 font-code border-slate-700"
                             />
-                             <Label className="text-green-400">Period</Label>
+                             <Label className="text-amber-400">Period</Label>
                              <Input 
                                 value={job.period} 
                                 onChange={e => handleExperienceChange(i, 'period', e.target.value)}
-                                className="bg-black text-green-400 font-code border-green-700"
+                                className="bg-black text-slate-100 font-code border-slate-700"
                             />
-                            <Label className="text-green-400">Description</Label>
+                            <Label className="text-amber-400">Description</Label>
                             <Textarea 
                                 value={job.description}
                                 onChange={e => handleExperienceChange(i, 'description', e.target.value)}
-                                className="bg-black text-green-400 font-code border-green-700"
+                                className="bg-black text-slate-100 font-code border-slate-700"
                             />
                         </div>
                     ))}
