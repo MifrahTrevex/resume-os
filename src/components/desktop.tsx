@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
-import type { WindowInstance } from '@/lib/types';
-import { APPS, personalInfo } from '@/lib/content.tsx';
+import type { WindowInstance, CvContent } from '@/lib/types';
+import { APPS, initialCvContent } from '@/lib/content';
 import Window from './window';
 import DesktopIcon from './desktop-icon';
 import { handleCommand } from '@/lib/actions';
@@ -115,7 +115,12 @@ function Terminal({ openApp }: { openApp: (appId: 'about' | 'resume' | 'projects
 export default function Desktop() {
   const [windows, setWindows] = useState<WindowInstance[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
+  const [cvContent, setCvContent] = useState<CvContent>(initialCvContent);
   const zIndexCounter = useRef(10);
+
+  const handleContentUpdate = (newContent: Partial<CvContent>) => {
+    setCvContent(prev => ({ ...prev, ...newContent }));
+  }
 
   const openApp = useCallback((appId: 'about' | 'resume' | 'projects' | 'terminal' | 'contact') => {
     // Check if a window for this app is already open
@@ -161,11 +166,22 @@ export default function Desktop() {
   };
   
   const renderWindowContent = (appId: WindowInstance['appId']) => {
+    const app = APPS.find(a => a.id === appId);
+    if (!app) return null;
+
     if (appId === 'terminal') {
       return <Terminal openApp={openApp} />;
     }
-    const app = APPS.find(a => a.id === appId);
-    return app ? <app.component /> : null;
+
+    if (appId === 'about') {
+        return <app.component content={cvContent} onSave={(newAbout: string) => handleContentUpdate({ about: newAbout })} />;
+    }
+    
+    if (appId === 'resume') {
+        return <app.component content={cvContent} onSave={(newResume: CvContent['resume']) => handleContentUpdate({ resume: newResume })} />;
+    }
+    
+    return <app.component content={cvContent} />;
   };
 
   return (
