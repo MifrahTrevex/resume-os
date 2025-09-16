@@ -6,7 +6,7 @@ import type { WindowInstance, CvContent, Project } from '@/lib/types';
 import { APPS, GAME_APPS, initialCvContent } from '@/lib/content';
 import Window from './window';
 import DesktopIcon from './desktop-icon';
-import { handleInterview } from '@/lib/actions';
+import { handleInterview, handleCommand } from '@/lib/actions';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { LogOut, User } from 'lucide-react';
@@ -103,19 +103,23 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
 
     setLines(prev => [...prev, { type: 'input', content: lowerCaseCommand }]);
     setInput('');
+    setIsProcessing(true);
     
     if (lowerCaseCommand.startsWith('play ')) {
         const game = lowerCaseCommand.split(' ')[1];
         if (game === 'firewall-defender') {
             startFirewallGame();
+            setIsProcessing(false);
             return;
         }
         if (game === 'tic-tac-toe') {
           startTicTacToe();
+          setIsProcessing(false);
           return;
         }
         if (game === 'guess-the-number') {
             startGuessTheNumber();
+            setIsProcessing(false);
             return;
         }
     }
@@ -126,6 +130,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
         } else {
              setLines(prev => [...prev, { type: 'error', content: `Not in a game. Cannot exit.` }]);
         }
+        setIsProcessing(false);
         return;
     }
     
@@ -135,6 +140,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
         } else {
             setLines(prev => [...prev, { type: 'error', content: `Unknown command in game mode. Type 'allow', 'deny', or 'exit'.` }]);
         }
+        setIsProcessing(false);
         return;
     }
     
@@ -145,59 +151,47 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
         } else {
             setLines(prev => [...prev, { type: 'error', content: `Unknown command. Enter a number (1-9) or 'exit'.` }]);
         }
+        setIsProcessing(false);
         return;
     }
 
     if (gameMode === 'guess-the-number') {
         handleGuess(lowerCaseCommand);
+        setIsProcessing(false);
         return;
     }
 
-    if (lowerCaseCommand === 'start' && history.length === 0) {
-      await startInterview();
-      return;
+    // AI Command Interpretation for non-game commands
+    const result = await handleCommand(lowerCaseCommand);
+    setLines(prev => [...prev, { type: 'system', content: `AI > ${result.reason}` }]);
+    
+    switch (result.action) {
+        case 'OPEN_RESUME':
+            openApp('resume');
+            break;
+        case 'SHOW_PROJECTS':
+            openApp('projects');
+            break;
+        case 'OPEN_LINK':
+            if (result.link) {
+                window.open(result.link, '_blank');
+            }
+            break;
+        case 'INVALID':
+            // The reason is already displayed
+            break;
+        default:
+            setLines(prev => [...prev, { type: 'error', content: `Unknown action: ${result.action}` }]);
     }
-
-    if (history.length === 0 && lowerCaseCommand !== 'start') {
-        setLines(prev => [...prev, { type: 'error', content: `Type 'start' to begin.` }]);
-        return;
-    }
-
-    const userMessage: Message = { role: 'user', content: lowerCaseCommand };
     
-    setLines(prev => [...prev, { type: 'output', content: "AI is typing..." }]);
-    setIsProcessing(true);
-
-    const newHistory = [...history, userMessage];
-    setHistory(newHistory);
-    
-    const result = await handleInterview({
-        cvContent: JSON.stringify(cvContent),
-        history: newHistory,
-    });
-    
-    const assistantMessage: Message = { role: 'model', content: result.response };
-    setHistory(prev => [...prev, assistantMessage]);
-
-    setLines(prev => {
-        const currentLines = [...prev];
-        const typingIndex = currentLines.findLastIndex(line => line.content === "AI is typing...");
-        if (typingIndex !== -1) {
-            currentLines[typingIndex] = { type: 'output', content: result.response };
-        } else {
-             currentLines.push({ type: 'output', content: result.response });
-        }
-        return currentLines;
-    });
-
     setIsProcessing(false);
-  }, [gameMode, history, cvContent, currentPacket, score, board, secretNumber, guesses]);
+  }, [gameMode, openApp, currentPacket, score, board, secretNumber, guesses]);
   
   useEffect(() => {
     if (!initialMessageDisplayed) {
       setLines([
         { type: 'system', content: `Dickens Okoth Otieno's Desktop v1.0` },
-        { type: 'system', content: `Type 'start' to begin your interview.` },
+        { type: 'system', content: `Type 'help' to see available commands.` },
       ]);
       setInitialMessageDisplayed(true);
       if (initialCommand) {
@@ -208,28 +202,6 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
 
 
   useEffect(scrollToBottom, [lines]);
-
-  const startInterview = useCallback(async () => {
-    setLines(prev => [...prev, { type: 'output', content: "AI is typing..." }]);
-    setIsProcessing(true);
-    const result: InterviewOutput = await handleInterview({
-        cvContent: JSON.stringify(cvContent),
-        history: [],
-    });
-    const assistantMessage: Message = { role: 'model', content: result.response };
-    setHistory([assistantMessage]);
-    setLines(prev => {
-        const newLines = [...prev];
-        const typingIndex = newLines.findLastIndex(line => line.content === "AI is typing...");
-        if (typingIndex !== -1) {
-            newLines[typingIndex] = { type: 'output', content: result.response };
-        } else {
-            newLines.push({ type: 'output', content: result.response });
-        }
-        return newLines;
-    });
-    setIsProcessing(false);
-  }, [cvContent]);
   
   const exitGame = () => {
       setGameMode('interview');
@@ -238,8 +210,8 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
       setHistory([]);
       setLines(prev => [
           ...prev,
-          { type: 'system', content: 'Exited game. Returning to interview mode.' },
-          { type: 'system', content: `Type 'start' to begin your interview.` }
+          { type: 'system', content: 'Exited game. Returning to command mode.' },
+          { type: 'system', content: `Type 'help' to see available commands.` }
       ]);
   }
 
@@ -451,7 +423,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
             gameMode === 'firewall-defender' ? `Type 'allow' or 'deny'...` :
             gameMode === 'tic-tac-toe' ? `Enter your move (1-9)...` :
             gameMode === 'guess-the-number' ? `Enter your guess...` :
-            (history.length === 0 ? `Type 'start' to begin...` : 'Type your response...')
+            `Type a command...`
           }
           autoFocus
           disabled={isProcessing}
@@ -606,5 +578,3 @@ export default function Desktop() {
     </div>
   );
 }
-
-    
