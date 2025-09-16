@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useRef, useEffect, type RefObject } from 'react';
+import { useState, useRef, useEffect, type RefObject, useCallback } from 'react';
 
 export function useDraggable(elRef: RefObject<HTMLElement>, handleRef: RefObject<HTMLElement>) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -27,7 +28,6 @@ export function useDraggable(elRef: RefObject<HTMLElement>, handleRef: RefObject
     if (!handle) return;
 
     const onMouseDown = (e: MouseEvent) => {
-      // Prevent dragging from input fields or buttons within the handle
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement) {
         return;
       }
@@ -66,5 +66,5 @@ export function useDraggable(elRef: RefObject<HTMLElement>, handleRef: RefObject
     };
   }, [position, handleRef]);
 
-  return position;
+  return { position, setPosition };
 }
