@@ -8,6 +8,7 @@ export type App = {
   isTerminal?: boolean;
   active?: boolean;
   isFolderContent?: boolean;
+  parentId?: string;
 };
 
 export type WindowInstance = {
@@ -18,6 +19,7 @@ export type WindowInstance = {
   size: { width: number, height: number };
   zIndex: number;
   minimized: boolean;
+  history: string[];
 };
 
 export type PersonalInfo = {

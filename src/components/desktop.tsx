@@ -10,7 +10,7 @@ import Taskbar from './taskbar';
 import { handleInterview, handleCommand } from '@/lib/actions';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { LogOut, User, Power, RefreshCcw, XCircle } from 'lucide-react';
+import { LogOut, User, Power, RefreshCcw, XCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import type { InterviewOutput } from '@/ai/flows/interview-flow';
 import {
@@ -708,7 +708,6 @@ export default function Desktop() {
   const [gameApps, setGameApps] = useState<App[]>(initialGameApps);
   const [powerState, setPowerState] = useState<PowerState>('running');
   const [powerMessage, setPowerMessage] = useState('');
-  const [openedFolders, setOpenedFolders] = useState<Record<string, string>>({});
 
   const handleGameToggle = (gameId: string) => {
     setGameApps(prev => prev.map(game => 
@@ -740,15 +739,24 @@ export default function Desktop() {
     };
 
 
-  const openApp = useCallback((appId: string, parentFolderId?: string) => {
+  const openApp = useCallback((appId: string, options?: { parentId: string }) => {
     const app = APPS.find(a => a.id === appId);
     if (!app) return;
 
-    if (app.isFolderContent && parentFolderId) {
-        setOpenedFolders(prev => ({ ...prev, [parentFolderId]: appId }));
-        focusWindow(parentFolderId);
-        return;
+    // Handle opening an item within a folder
+    if (options?.parentId) {
+        const parentWindow = windows.find(w => w.id === options.parentId);
+        if (parentWindow) {
+            setWindows(prev => prev.map(w => w.id === options.parentId ? {
+                ...w,
+                appId: appId, // Change the content of the existing window
+                history: [...(w.history || [w.appId]), appId],
+            } : w));
+            focusWindow(options.parentId);
+            return;
+        }
     }
+
 
     const gameApp = gameApps.find(g => g.id === appId);
     const isTerminalGame = gameApp && gameApp.isTerminal;
@@ -773,6 +781,7 @@ export default function Desktop() {
               size: { width: 640, height: 480 },
               zIndex: newZIndex,
               minimized: false,
+              history: ['terminal'],
             };
             setWindows(prev => [...prev, newWindow]);
             setActiveWindow(newWindow.id);
@@ -780,9 +789,9 @@ export default function Desktop() {
         return;
     }
       
-    const existingWindowId = Object.keys(openedFolders).find(key => openedFolders[key] === appId) || windows.find(w => w.appId === appId)?.id;
-    if (existingWindowId) {
-      focusWindow(existingWindowId);
+    const existingWindow = windows.find(w => w.appId === appId && !w.history.includes(app.parentId || ''));
+    if (existingWindow) {
+      focusWindow(existingWindow.id);
       return;
     }
 
@@ -796,10 +805,11 @@ export default function Desktop() {
       size: { width: 640, height: 480 },
       zIndex: newZIndex,
       minimized: false,
+      history: [appId],
     };
     setWindows(prev => [...prev, newWindow]);
     setActiveWindow(newWindow.id);
-  }, [windows, gameApps, APPS, openedFolders]);
+  }, [windows, gameApps, APPS]);
 
   useEffect(() => {
       if (terminalInitialCommand && windows.some(w => w.appId === 'terminal')) {
@@ -813,13 +823,18 @@ export default function Desktop() {
     if (activeWindow === id) {
       setActiveWindow(null);
     }
-    if (openedFolders[id]) {
-        setOpenedFolders(prev => {
-            const newState = {...prev};
-            delete newState[id];
-            return newState;
-        })
-    }
+  };
+  
+   const goBackInWindow = (windowId: string) => {
+    setWindows(prev => prev.map(w => {
+        if (w.id === windowId && w.history && w.history.length > 1) {
+            const newHistory = [...w.history];
+            newHistory.pop();
+            const newAppId = newHistory[newHistory.length - 1];
+            return { ...w, appId: newAppId, history: newHistory };
+        }
+        return w;
+    }));
   };
 
   const focusWindow = (id: string) => {
@@ -859,8 +874,7 @@ export default function Desktop() {
 
 
   const renderWindowContent = (win: WindowInstance) => {
-    const openedAppId = openedFolders[win.id] || win.appId;
-    const app = APPS.find(a => a.id === openedAppId);
+    const app = APPS.find(a => a.id === win.appId);
     if (!app) return null;
 
     if (win.appId === 'terminal') {
@@ -871,15 +885,21 @@ export default function Desktop() {
         return <app.component onSave={handleContentUpdate} />;
     }
     
-    return <app.component openApp={(appId: string) => openApp(appId, win.id)} />;
+    return <app.component openApp={(appId: string) => openApp(appId, { parentId: win.id })} />;
+  };
+  
+  const getWindowTitle = (win: WindowInstance) => {
+    if (!win.history || win.history.length <= 1) {
+        return APPS.find(a => a.id === win.appId)?.name || 'Window';
+    }
+    return win.history
+        .map(appId => APPS.find(a => a.id === appId)?.name)
+        .filter(Boolean)
+        .join(' > ');
   };
 
-  const desktopApps = APPS.filter(app => {
-      if (app.isFolderContent) return false;
-      if (app.id === 'game-manager') return isAuthenticated;
-      if (['games', 'personal'].includes(app.id)) return true;
-      return !initialGameApps.some(g => g.id === app.id) && !['game-manager', 'games', 'personal'].includes(app.id);
-  });
+
+  const desktopApps = APPS.filter(app => !app.isFolderContent);
 
    if (powerState === 'shutting_down' || powerState === 'restarting' || powerState === 'off') {
         return (
@@ -937,12 +957,13 @@ export default function Desktop() {
       {windows.filter(w => !w.minimized).map(win => (
         <Window
           key={win.id}
-          title={openedFolders[win.id] ? APPS.find(a => a.id === openedFolders[win.id])?.name || win.title : win.title}
+          title={getWindowTitle(win)}
           zIndex={win.zIndex}
           initialSize={win.size}
           onClose={() => closeWindow(win.id)}
           onFocus={() => focusWindow(win.id)}
           onMinimize={() => minimizeWindow(win.id)}
+          onGoBack={win.history && win.history.length > 1 ? () => goBackInWindow(win.id) : undefined}
           isActive={activeWindow === win.id}
         >
           {renderWindowContent(win)}

@@ -4,7 +4,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { useDraggable } from '@/hooks/use-draggable';
 import { useResizable } from '@/hooks/use-resizable';
-import { Minus, Square, X, ChevronsDownUp } from 'lucide-react';
+import { Minus, Square, X, ChevronsDownUp, ArrowLeft } from 'lucide-react';
+import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 
 interface WindowProps {
@@ -13,12 +14,13 @@ interface WindowProps {
   onClose: () => void;
   onFocus: () => void;
   onMinimize: () => void;
+  onGoBack?: () => void;
   zIndex: number;
   initialSize: { width: number; height: number };
   isActive: boolean;
 }
 
-export default function Window({ title, children, onClose, onFocus, onMinimize, zIndex, initialSize, isActive }: WindowProps) {
+export default function Window({ title, children, onClose, onFocus, onMinimize, onGoBack, zIndex, initialSize, isActive }: WindowProps) {
   const windowRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
   
@@ -90,7 +92,22 @@ export default function Window({ title, children, onClose, onFocus, onMinimize, 
         className={`flex items-center justify-between p-1 bg-gradient-to-b from-primary/80 to-primary/50 ${isMaximized ? '' : 'rounded-t-sm'} cursor-grab active:cursor-grabbing`}
         onDoubleClick={handleMaximizeToggle}
       >
-        <span className="text-sm font-bold text-primary-foreground select-none ml-1">{title}</span>
+        <div className="flex items-center gap-2">
+             {onGoBack && (
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6"
+                    onClick={(e) => {
+                        e.stopPropagation(); // prevent focus and drag
+                        onGoBack();
+                    }}
+                >
+                    <ArrowLeft size={16} className="text-primary-foreground" />
+                </Button>
+            )}
+            <span className="text-sm font-bold text-primary-foreground select-none ml-1 truncate">{title}</span>
+        </div>
         <div className="flex items-center gap-1">
           <button onClick={onMinimize} className="p-1 rounded-sm transition-colors bg-card/50 hover:bg-card/80"><Minus size={14} className="text-foreground" /></button>
           <button onClick={handleMaximizeToggle} className="p-1 rounded-sm transition-colors bg-card/50 hover:bg-card/80">

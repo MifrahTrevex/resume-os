@@ -758,14 +758,14 @@ const PersonalFolderContent = ({ openApp }: { openApp: (appId: string) => void; 
 const PlaceholderTerminal = () => React.Fragment;
 
 export const initialGameApps: App[] = [
-    { id: 'css-invaders', name: 'CSS Invaders', icon: <GamepadIcon />, component: CSSInvaders, isTerminal: false, active: true },
-    { id: 'data-breach', name: 'Data Breach', icon: <GamepadIcon />, component: HackerClicker, isTerminal: false, active: true },
-    { id: 'system-override', name: 'System Override', icon: <GamepadIcon />, component: SystemOverride, isTerminal: false, active: true },
-    { id: 'firewall-defender-game', name: 'Firewall Defender', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: true },
-    { id: 'tic-tac-toe-game', name: 'Tic-Tac-Toe', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: true },
-    { id: 'guess-the-number-game', name: 'Guess The Number', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: false },
-    { id: 'netrun-game', name: 'NetRun', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: false },
-    { id: 'mainframe-breach-game', name: 'Mainframe Breach', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: false },
+    { id: 'css-invaders', name: 'CSS Invaders', icon: <GamepadIcon />, component: CSSInvaders, isTerminal: false, active: true, parentId: 'games' },
+    { id: 'data-breach', name: 'Data Breach', icon: <GamepadIcon />, component: HackerClicker, isTerminal: false, active: true, parentId: 'games' },
+    { id: 'system-override', name: 'System Override', icon: <GamepadIcon />, component: SystemOverride, isTerminal: false, active: true, parentId: 'games' },
+    { id: 'firewall-defender-game', name: 'Firewall Defender', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: true, parentId: 'games' },
+    { id: 'tic-tac-toe-game', name: 'Tic-Tac-Toe', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: true, parentId: 'games' },
+    { id: 'guess-the-number-game', name: 'Guess The Number', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: false, parentId: 'games' },
+    { id: 'netrun-game', name: 'NetRun', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: false, parentId: 'games' },
+    { id: 'mainframe-breach-game', name: 'Mainframe Breach', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: false, parentId: 'games' },
 ];
 
 export const ALL_APPS: (cvContent: CvContent, games: App[], onGameToggle: (gameId: string) => void) => App[] = (cvContent, games, onGameToggle) => [
@@ -774,9 +774,10 @@ export const ALL_APPS: (cvContent: CvContent, games: App[], onGameToggle: (gameI
     { id: 'projects', name: 'Projects', icon: <FolderIcon />, component: (props: any) => <ProjectsContent {...props} content={cvContent} /> },
     { id: 'contact', name: 'Contact', icon: <FolderIcon />, component: () => <ContactContent content={cvContent} /> },
     { id: 'personal', name: 'Personal', icon: <FolderIcon />, component: PersonalFolderContent },
-    { id: 'interests', name: 'Interests.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <InterestsContent {...props} content={cvContent} />, isFolderContent: true },
-    { id: 'details', name: 'Details.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <DetailsContent {...props} content={cvContent} />, isFolderContent: true },
+    { id: 'interests', name: 'Interests.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <InterestsContent {...props} content={cvContent} />, isFolderContent: true, parentId: 'personal' },
+    { id: 'details', name: 'Details.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <DetailsContent {...props} content={cvContent} />, isFolderContent: true, parentId: 'personal' },
     { id: 'terminal', name: 'Terminal', icon: <TerminalAppIcon />, component: PlaceholderTerminal },
     { id: 'games', name: 'Games', icon: <FolderIcon />, component: (props: any) => <GamesFolderContent {...props} games={games} /> },
+    ...games.map(g => ({...g, isFolderContent: true, parentId: 'games'})),
     { id: 'game-manager', name: 'Game Manager', icon: <AdminIcon />, component: () => <GameManagerContent games={games} onToggle={onGameToggle} /> },
-];
+].filter((app, index, self) => index === self.findIndex((t) => (t.id === app.id)));
