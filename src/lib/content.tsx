@@ -62,7 +62,7 @@ export const initialCvContent: CvContent = {
         contact: {
             email: "dickenokoth@gmail.com",
             linkedin: "https://linkedin.com/in/dickens-okoth",
-            github: "https://github.com/dickens-okoth",
+            github: "https://github.com/MifrahTrevex",
             phone: "(+254) 792475055",
         },
     },
@@ -475,3 +475,4 @@ export const APPS: App[] = [
       
 
     
+
