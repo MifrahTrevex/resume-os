@@ -77,7 +77,7 @@ export const initialCvContent: CvContent = {
         imageUrl: "",
         contact: {
             email: "dickenokoth@gmail.com",
-            linkedin: "https://www.linkedin.com/in/dickens-okoth-930147248",
+            linkedin: "www.linkedin.com/in/dickens-okoth-930147248",
             github: "https://github.com/MifrahTrevex",
             phone: "(+254) 792475055",
         },
@@ -579,7 +579,7 @@ const ContactContent = ({ content }: { content: CvContent }) => {
 };
 
 
-const GamesFolderContent = ({ openApp, games }: { openApp: (appId: string) => void; games: App[] }) => {
+const GamesFolderContent = React.memo(({ openApp, games }: { openApp: (appId: string) => void; games: App[] }) => {
     const { isAuthenticated } = useAuth();
     const ICONS_PER_ROW = 4;
     const ICON_WIDTH = 96;
@@ -615,7 +615,9 @@ const GamesFolderContent = ({ openApp, games }: { openApp: (appId: string) => vo
             })}
         </div>
     );
-};
+});
+
+GamesFolderContent.displayName = 'GamesFolderContent';
 
 const GameManagerContent = ({ games, onToggle }: { games: App[], onToggle: (gameId: string) => void }) => {
     return (
