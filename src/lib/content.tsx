@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2 } from 'lucide-react';
+import CSSInvaders from '@/components/css-invaders';
 
 const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -28,7 +29,18 @@ const TerminalAppIcon = () => (
         <path d="M18 28L26 36L18 44" stroke="#4ade80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M30 44H46" stroke="#e5e7eb" strokeWidth="3" strokeLinecap="round"/>
     </svg>
-)
+);
+
+const GamepadIcon = () => (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="64" height="64" rx="8" fill="#2A2A2A"/>
+        <path d="M24 30H18V36H24V30Z" fill="#4ade80"/>
+        <path d="M21 27V39" stroke="#4ade80" stroke-width="2"/>
+        <circle cx="40" cy="36" r="3" fill="#4ade80"/>
+        <circle cx="46" cy="30" r="3" fill="#4ade80"/>
+    </svg>
+);
+
 
 export const initialCvContent: CvContent = {
     personalInfo: {
@@ -330,4 +342,5 @@ export const APPS: App[] = [
     { id: 'projects', name: 'Projects', icon: <FolderIcon />, component: ProjectsContent },
     { id: 'contact', name: 'Contact', icon: <FolderIcon />, component: ContactContent },
     { id: 'terminal', name: 'Terminal', icon: <TerminalAppIcon />, component: PlaceholderTerminal },
+    { id: 'css-invaders', name: 'CSS Invaders', icon: <GamepadIcon />, component: CSSInvaders },
 ];

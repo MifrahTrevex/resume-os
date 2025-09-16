@@ -23,7 +23,7 @@ type Message = {
     content: string;
 };
 
-type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe';
+type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe' | 'css-invaders';
 
 const firewallRules = [
     "Rule 1: Deny all traffic from IP 192.168.1.100 (Known malicious actor).",
@@ -73,7 +73,7 @@ function generatePacket(): Packet {
     return { sourceIp, port, type: randomType, isMalicious };
 }
 
-function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' | 'projects' | 'contact') => void; cvContent: CvContent }) {
+function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' | 'projects' | 'contact' | 'css-invaders') => void; cvContent: CvContent }) {
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [history, setHistory] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -408,7 +408,7 @@ export default function Desktop() {
     setCvContent(prev => ({ ...prev, ...newContent }));
   }
 
-  const openApp = useCallback((appId: 'about' | 'resume' | 'projects' | 'terminal' | 'contact') => {
+  const openApp = useCallback((appId: 'about' | 'resume' | 'projects' | 'terminal' | 'contact' | 'css-invaders') => {
     // Check if a window for this app is already open
     const existingWindow = windows.find(w => w.appId === appId);
     if (existingWindow) {

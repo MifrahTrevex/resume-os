@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import '../styles/crt.css';
+import '../styles/shooter.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/auth-context';
 

@@ -1,5 +1,5 @@
 export type App = {
-  id: 'about' | 'resume' | 'projects' | 'terminal' | 'contact';
+  id: 'about' | 'resume' | 'projects' | 'terminal' | 'contact' | 'css-invaders';
   name: string;
   icon: React.ReactNode;
   component: React.ComponentType<any>;
