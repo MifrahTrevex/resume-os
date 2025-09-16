@@ -7,11 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check } from 'lucide-react';
+import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check, ExternalLink } from 'lucide-react';
 import CSSInvaders from '@/components/css-invaders';
 import DesktopIcon from '@/components/desktop-icon';
 import HackerClicker from '@/components/hacker-clicker';
 import SystemOverride from '@/components/system-override';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -305,16 +307,26 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
                 </div>
                 {content.projects.length > 0 ? (
                     <div className="space-y-4">
-                    {content.projects.map((proj, i) => (
-                         <div key={i}>
-                            <h3 className="font-bold">{proj.title}</h3>
-                            <p className="mt-1 mb-2 whitespace-pre-wrap">{proj.description}</p>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                {proj.tech.map(t => <span key={t} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{t}</span>)}
-                                <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs">View Project &rarr;</a>
-                            </div>
-                        </div>
-                    ))}
+                        {content.projects.map((proj, i) => (
+                            <Card key={i} className="bg-card/50">
+                                <CardHeader>
+                                    <CardTitle>{proj.title}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="whitespace-pre-wrap">{proj.description}</p>
+                                </CardContent>
+                                <CardFooter className="flex-col items-start gap-4">
+                                    <div className="flex flex-wrap gap-2">
+                                        {proj.tech.map(t => <Badge key={t} variant="secondary">{t}</Badge>)}
+                                    </div>
+                                    <Button asChild variant="link" className="p-0 h-auto">
+                                        <a href={proj.link} target="_blank" rel="noopener noreferrer">
+                                            View Project <ExternalLink className="ml-2 h-4 w-4" />
+                                        </a>
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        ))}
                     </div>
                 ) : (
                     <p>No projects listed yet. Log in to add some!</p>
@@ -383,8 +395,8 @@ const GamesFolderContent = ({ openApp }: { openApp: (appId: string) => void }) =
                 const row = Math.floor(index / ICONS_PER_ROW);
                 const col = index % ICONS_PER_ROW;
                 const initialPosition = {
-                    x: col * (ICON_WIDTH + PADDING) + PADDING,
-                    y: row * (ICON_HEIGHT + PADDING) + PADDING,
+                    x: col * (ICON_WIDTH + PADDING),
+                    y: row * (ICON_HEIGHT + PADDING),
                 };
                 return (
                     <DesktopIcon
