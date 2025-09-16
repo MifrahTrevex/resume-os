@@ -11,12 +11,18 @@ interface DesktopIconProps {
 
 export default function DesktopIcon({ icon, name, onClick, initialPosition }: DesktopIconProps) {
   const iconRef = useRef<HTMLButtonElement>(null);
-  const { position } = useDraggableIcon(iconRef, initialPosition);
+  const { position, wasDragged } = useDraggableIcon(iconRef, initialPosition);
+
+  const handleClick = () => {
+      if (!wasDragged()) {
+        onClick();
+      }
+  };
 
   return (
     <button
       ref={iconRef}
-      onClick={onClick}
+      onClick={handleClick}
       style={{
         position: 'absolute',
         top: `${position.y}px`,

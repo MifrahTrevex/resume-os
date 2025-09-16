@@ -1,13 +1,16 @@
 
 "use client";
 
-import { useState, useRef, useEffect, type RefObject } from 'react';
+import { useState, useRef, useEffect, type RefObject, useCallback } from 'react';
+
+const DRAG_THRESHOLD = 5; // pixels
 
 export function useDraggableIcon(elRef: RefObject<HTMLElement>, initialPosition: { x: number; y: number }) {
   const [position, setPosition] = useState(initialPosition);
   const isDraggingRef = useRef(false);
   const dragStartPosRef = useRef({ x: 0, y: 0 });
   const elStartPosRef = useRef({ x: 0, y: 0 });
+  const hasMovedRef = useRef(false);
 
   useEffect(() => {
     const el = elRef.current;
@@ -20,6 +23,7 @@ export function useDraggableIcon(elRef: RefObject<HTMLElement>, initialPosition:
       }
       e.preventDefault();
       isDraggingRef.current = true;
+      hasMovedRef.current = false;
       dragStartPosRef.current = { x: e.clientX, y: e.clientY };
       elStartPosRef.current = position;
     };
@@ -29,6 +33,10 @@ export function useDraggableIcon(elRef: RefObject<HTMLElement>, initialPosition:
       e.preventDefault();
       const dx = e.clientX - dragStartPosRef.current.x;
       const dy = e.clientY - dragStartPosRef.current.y;
+      
+      if (!hasMovedRef.current && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+        hasMovedRef.current = true;
+      }
       
       const parent = el.parentElement;
       if (!parent) return;
@@ -56,5 +64,7 @@ export function useDraggableIcon(elRef: RefObject<HTMLElement>, initialPosition:
     };
   }, [position, elRef]);
 
-  return { position, setPosition };
+  const wasDragged = useCallback(() => hasMovedRef.current, []);
+
+  return { position, setPosition, wasDragged };
 }
