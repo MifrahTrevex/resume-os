@@ -1,13 +1,13 @@
 
 import type { App, CvContent, Project } from './types';
-import React, from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check } from 'lucide-react';
 import CSSInvaders from '@/components/css-invaders';
 import DesktopIcon from '@/components/desktop-icon';
 import HackerClicker from '@/components/hacker-clicker';
@@ -324,17 +324,52 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
     );
 };
 
-const ContactContent = ({ content }: { content: CvContent }) => (
-     <div className="p-4">
-        <h2 className="text-xl font-bold font-headline mb-4 text-foreground">Contact</h2>
-        <p className="mb-4">You can reach me through the following channels:</p>
-        <ul className="space-y-2">
-            <li><a href={`mailto:${content.personalInfo.contact.email}`} className="flex items-center gap-2 hover:text-primary">{content.personalInfo.contact.email}</a></li>
-            <li><a href={content.personalInfo.contact.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-primary">LinkedIn</a></li>
-            <li><a href={content.personalInfo.contact.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-primary">GitHub</a></li>
-        </ul>
-    </div>
-);
+const ContactContent = ({ content }: { content: CvContent }) => {
+    const [copiedItem, setCopiedItem] = useState<string | null>(null);
+
+    const handleCopy = (text: string, itemName: string) => {
+        navigator.clipboard.writeText(text);
+        setCopiedItem(itemName);
+        setTimeout(() => setCopiedItem(null), 2000); // Reset after 2 seconds
+    };
+    
+    const contact = content.personalInfo.contact;
+
+    return (
+        <div className="p-4 space-y-4">
+            <h2 className="text-xl font-bold font-headline text-foreground">Contact Information</h2>
+            <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <a href={`mailto:${contact.email}`} className="flex items-center gap-3 hover:text-primary transition-colors">
+                        <Mail className="w-5 h-5 text-muted-foreground" />
+                        <span>{contact.email}</span>
+                    </a>
+                    <Button variant="ghost" size="icon" onClick={() => handleCopy(contact.email, 'email')}>
+                        {copiedItem === 'email' ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                </div>
+                <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                        <Phone className="w-5 h-5 text-muted-foreground" />
+                        <span>{contact.phone}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => handleCopy(contact.phone, 'phone')}>
+                        {copiedItem === 'phone' ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
+                    </Button>
+                </div>
+                <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-primary transition-colors">
+                    <Linkedin className="w-5 h-5 text-muted-foreground" />
+                    <span>LinkedIn</span>
+                </a>
+                <a href={contact.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-primary transition-colors">
+                    <Github className="w-5 h-5 text-muted-foreground" />
+                    <span>GitHub</span>
+                </a>
+            </div>
+        </div>
+    );
+};
+
 
 const GamesFolderContent = ({ openApp }: { openApp: (appId: string) => void }) => {
     const ICONS_PER_ROW = 4;
