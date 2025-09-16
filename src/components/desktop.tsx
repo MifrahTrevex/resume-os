@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
+import { useState, useRef, useEffect, useCallback, type FormEvent, type MouseEvent } from 'react';
 import type { WindowInstance, CvContent, Project, App } from '@/lib/types';
 import { initialGameApps, initialCvContent, ALL_APPS } from '@/lib/content';
 import Window from './window';
@@ -10,7 +10,7 @@ import Taskbar from './taskbar';
 import { handleInterview, handleCommand } from '@/lib/actions';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { LogOut, User, Power, RefreshCcw, XCircle, ArrowLeft } from 'lucide-react';
+import { LogOut, User, Power, RefreshCcw, XCircle, ArrowLeft, FolderPlus, Trash2, Edit } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import type { InterviewOutput } from '@/ai/flows/interview-flow';
 import {
@@ -24,6 +24,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import BootScreen from './boot-screen';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
+import { Label } from './ui/label';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 type TerminalLine = {
   type: 'input' | 'output' | 'system' | 'error';
@@ -710,6 +713,22 @@ export default function Desktop() {
   const [powerState, setPowerState] = useState<PowerState>('running');
   const [powerMessage, setPowerMessage] = useState('');
   const [booting, setBooting] = useState(true);
+  const [apps, setApps] = useState<App[]>([]);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false);
+  const [itemToRename, setItemToRename] = useState<App | null>(null);
+  const [newItemName, setNewItemName] = useState('');
+  const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item?: App } | null>(null);
+
+
+   useEffect(() => {
+    const generatedApps = ALL_APPS(cvContent, gameApps, handleGameToggle);
+    if (!isAuthenticated) {
+      setApps(generatedApps.filter(app => app.id !== 'game-manager'));
+    } else {
+      setApps(generatedApps);
+    }
+  }, [cvContent, gameApps, isAuthenticated]);
 
   useEffect(() => {
     const timer = setTimeout(() => setBooting(false), 5000); // Adjust boot time here
@@ -721,8 +740,6 @@ export default function Desktop() {
         game.id === gameId ? { ...game, active: !game.active } : game
     ));
   };
-  
-  const APPS = ALL_APPS(cvContent, gameApps, handleGameToggle);
 
   const handleContentUpdate = (newContent: Partial<CvContent>) => {
     setCvContent(prev => ({ ...prev, ...newContent }));
@@ -745,9 +762,65 @@ export default function Desktop() {
         }, 2000);
     };
 
+    const handleRightClick = (e: MouseEvent, item?: App) => {
+        e.preventDefault();
+        setContextMenu({ x: e.clientX, y: e.clientY, item });
+    };
+
+    const closeContextMenu = () => {
+        setContextMenu(null);
+    };
+
+    useEffect(() => {
+        document.addEventListener('click', closeContextMenu);
+        return () => document.removeEventListener('click', closeContextMenu);
+    }, []);
+
+    const handleCreateFolder = () => {
+        setIsCreateFolderDialogOpen(true);
+    };
+    
+    const handleRename = (item: App) => {
+        setItemToRename(item);
+        setNewItemName(item.name);
+        setIsRenameDialogOpen(true);
+    };
+
+    const handleDelete = (item: App) => {
+        setApps(prev => prev.filter(app => app.id !== item.id));
+        setWindows(prev => prev.filter(w => w.appId !== item.id));
+    };
+
+    const submitRename = () => {
+        if (!itemToRename || !newItemName.trim()) return;
+        setApps(prev => prev.map(app => 
+            app.id === itemToRename.id ? { ...app, name: newItemName } : app
+        ));
+        setWindows(prev => prev.map(win =>
+            win.appId === itemToRename.id ? { ...win, title: newItemName } : win
+        ));
+        setIsRenameDialogOpen(false);
+        setItemToRename(null);
+        setNewItemName('');
+    };
+
+     const submitCreateFolder = () => {
+        if (!newItemName.trim()) return;
+        const newFolder: App = {
+            id: `folder-${Date.now()}`,
+            name: newItemName,
+            icon: ALL_APPS(cvContent, gameApps, handleGameToggle).find(a => a.id === 'personal')!.icon, // Reuse folder icon
+            component: () => <div className="p-4">This folder is empty.</div>,
+        };
+        setApps(prev => [...prev, newFolder]);
+        setIsCreateFolderDialogOpen(false);
+        setNewItemName('');
+    };
+
+
 
   const openApp = useCallback((appId: string, options?: { parentId: string }) => {
-    const app = APPS.find(a => a.id === appId);
+    const app = apps.find(a => a.id === appId);
     if (!app) return;
 
     // Handle opening an item within a folder
@@ -775,7 +848,7 @@ export default function Desktop() {
         if (terminalWindow) {
             focusWindow(terminalWindow.id);
         } else {
-            const terminalApp = APPS.find(a => a.id === 'terminal');
+            const terminalApp = apps.find(a => a.id === 'terminal');
              if (!terminalApp) return;
 
             const newZIndex = zIndexCounter.current + 1;
@@ -796,7 +869,7 @@ export default function Desktop() {
         return;
     }
       
-    const existingWindow = windows.find(w => w.appId === appId && !w.history.includes(app.parentId || ''));
+    const existingWindow = windows.find(w => w.appId === appId && (!w.history.length || w.history[w.history.length -1] === appId));
     if (existingWindow) {
       focusWindow(existingWindow.id);
       return;
@@ -816,7 +889,7 @@ export default function Desktop() {
     };
     setWindows(prev => [...prev, newWindow]);
     setActiveWindow(newWindow.id);
-  }, [windows, gameApps, APPS]);
+  }, [windows, gameApps, apps]);
 
   useEffect(() => {
       if (terminalInitialCommand && windows.some(w => w.appId === 'terminal')) {
@@ -881,7 +954,7 @@ export default function Desktop() {
 
 
   const renderWindowContent = (win: WindowInstance) => {
-    const app = APPS.find(a => a.id === win.appId);
+    const app = apps.find(a => a.id === win.appId);
     if (!app) return null;
 
     if (win.appId === 'terminal') {
@@ -897,16 +970,16 @@ export default function Desktop() {
   
   const getWindowTitle = (win: WindowInstance) => {
     if (!win.history || win.history.length <= 1) {
-        return APPS.find(a => a.id === win.appId)?.name || 'Window';
+        return apps.find(a => a.id === win.appId)?.name || 'Window';
     }
     return win.history
-        .map(appId => APPS.find(a => a.id === appId)?.name)
+        .map(appId => apps.find(a => a.id === appId)?.name)
         .filter(Boolean)
         .join(' > ');
   };
 
 
-  const desktopApps = APPS.filter(app => !app.isFolderContent);
+  const desktopApps = apps.filter(app => !app.isFolderContent);
 
    if (booting) {
         return <BootScreen />;
@@ -921,7 +994,7 @@ export default function Desktop() {
     }
 
   return (
-    <div className="desktop-background relative w-full h-full bg-background">
+    <div className="desktop-background relative w-full h-full bg-background" onContextMenu={isAuthenticated ? (e) => handleRightClick(e) : undefined}>
        {isAuthenticated && (
          <div className="absolute top-4 right-4 z-[100] flex items-center gap-4">
            <div className="flex items-center gap-2 text-sm bg-card/70 p-2 rounded-md">
@@ -952,6 +1025,54 @@ export default function Desktop() {
             </AlertDialogContent>
         </AlertDialog>
 
+        {contextMenu && (
+            <div
+                style={{ top: contextMenu.y, left: contextMenu.x }}
+                className="absolute z-[9999] bg-card border border-border rounded-md shadow-lg p-1"
+            >
+                {contextMenu.item ? (
+                    <>
+                        <Button variant="ghost" className="w-full justify-start" onClick={() => handleRename(contextMenu.item!)}><Edit />Rename</Button>
+                        <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive" onClick={() => handleDelete(contextMenu.item!)}><Trash2 />Delete</Button>
+                    </>
+                ) : (
+                    <Button variant="ghost" className="w-full justify-start" onClick={handleCreateFolder}><FolderPlus />New Folder</Button>
+                )}
+            </div>
+        )}
+        
+        <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Rename</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2">
+                    <Label htmlFor="rename-input">New name</Label>
+                    <Input id="rename-input" value={newItemName} onChange={e => setNewItemName(e.target.value)} />
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={submitRename}>Rename</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        
+        <Dialog open={isCreateFolderDialogOpen} onOpenChange={setIsCreateFolderDialogOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Create New Folder</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2">
+                    <Label htmlFor="create-folder-input">Folder name</Label>
+                    <Input id="create-folder-input" value={newItemName} onChange={e => setNewItemName(e.target.value)} />
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsCreateFolderDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={submitCreateFolder}>Create</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
 
       <div className="relative w-full h-[calc(100%-40px)] p-4 overflow-hidden">
         {desktopApps.map((app, index) => (
@@ -961,6 +1082,7 @@ export default function Desktop() {
             icon={app.icon}
             onClick={() => openApp(app.id)}
             initialPosition={{ x: 20, y: 20 + index * 110 }}
+            onContextMenu={isAuthenticated ? (e) => handleRightClick(e, app) : undefined}
           />
         ))}
       </div>
@@ -982,7 +1104,7 @@ export default function Desktop() {
       ))}
       <Taskbar
         windows={windows}
-        apps={APPS}
+        apps={apps}
         onTaskbarClick={handleTaskbarClick}
         onWindowClose={closeWindow}
         activeWindowId={activeWindow}

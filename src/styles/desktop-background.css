@@ -6,4 +6,19 @@
     background-size: 20px 20px, 300px 300px;
     background-position: center center;
     background-repeat: repeat, no-repeat;
+    position: relative;
+}
+
+.desktop-background::after {
+    content: "Clarity in the cracks";
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: hsl(var(--foreground) / 0.1);
+    font-family: var(--font-headline);
+    pointer-events: none;
+    text-shadow: 0 0 10px hsl(var(--background));
 }

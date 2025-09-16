@@ -1,15 +1,16 @@
 import { useDraggableIcon } from "@/hooks/use-draggable-icon";
 import { cn } from "@/lib/utils";
-import { useRef } from "react";
+import { useRef, type MouseEvent } from "react";
 
 interface DesktopIconProps {
   icon: React.ReactNode;
   name: string;
   onClick: () => void;
   initialPosition: { x: number; y: number };
+  onContextMenu?: (event: MouseEvent) => void;
 }
 
-export default function DesktopIcon({ icon, name, onClick, initialPosition }: DesktopIconProps) {
+export default function DesktopIcon({ icon, name, onClick, initialPosition, onContextMenu }: DesktopIconProps) {
   const iconRef = useRef<HTMLButtonElement>(null);
   const { position, wasDragged } = useDraggableIcon(iconRef, initialPosition);
 
@@ -23,6 +24,7 @@ export default function DesktopIcon({ icon, name, onClick, initialPosition }: De
     <button
       ref={iconRef}
       onClick={handleClick}
+      onContextMenu={onContextMenu}
       style={{
         position: 'absolute',
         top: `${position.y}px`,
