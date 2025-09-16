@@ -861,7 +861,8 @@ export default function Desktop() {
 
   const desktopApps = APPS.filter(app => {
       if (app.id === 'game-manager') return isAuthenticated;
-      return !initialGameApps.some(g => g.id === app.id) && app.id !== 'game-manager';
+      if (app.id === 'games') return true; // Always show games folder
+      return !initialGameApps.some(g => g.id === app.id) && app.id !== 'game-manager' && app.id !== 'games';
   });
 
    if (powerState === 'shutting_down' || powerState === 'restarting' || powerState === 'off') {
@@ -873,7 +874,7 @@ export default function Desktop() {
     }
 
   return (
-    <div className="relative w-full h-full p-4 overflow-hidden">
+    <div className="relative w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('/img/wallpaper.jpg')"}}>
        {isAuthenticated && (
          <div className="absolute top-4 right-4 z-[100] flex items-center gap-4">
            <div className="flex items-center gap-2 text-sm bg-card/70 p-2 rounded-md">
@@ -885,12 +886,6 @@ export default function Desktop() {
            </Button>
          </div>
        )}
-
-        <div className="absolute bottom-4 right-4 z-[100]">
-            <Button variant="ghost" size="icon" onClick={() => setPowerState('confirming')}>
-                <Power className="text-destructive" />
-            </Button>
-        </div>
         
         <AlertDialog open={powerState === 'confirming'} onOpenChange={(open) => !open && setPowerState('running')}>
             <AlertDialogContent>
@@ -911,7 +906,7 @@ export default function Desktop() {
         </AlertDialog>
 
 
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-[calc(100%-40px)] p-4 overflow-hidden">
         {desktopApps.map((app, index) => (
           <DesktopIcon
             key={app.id}
@@ -941,6 +936,9 @@ export default function Desktop() {
         apps={APPS}
         onTaskbarClick={handleTaskbarClick}
         activeWindowId={activeWindow}
+        onAppLaunch={openApp}
+        onShutdown={() => setPowerState('confirming')}
+        onRestart={() => setPowerState('confirming')}
       />
     </div>
   );
