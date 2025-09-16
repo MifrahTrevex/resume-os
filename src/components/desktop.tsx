@@ -26,6 +26,7 @@ type Message = {
 function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' | 'projects' | 'contact') => void; cvContent: CvContent }) {
   const [lines, setLines] = useState<TerminalLine[]>([
     { type: 'system', content: `Dickens Okoth Otieno's Desktop v1.0` },
+    { type: 'system', content: `Type 'start' to begin your interview.` },
   ]);
   const [history, setHistory] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -50,15 +51,20 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     setIsProcessing(false);
   }, [cvContent]);
   
-  useEffect(() => {
-    startInterview();
-  }, [startInterview]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isProcessing) return;
 
     const command = input.trim();
+    
+    if (command.toLowerCase() === 'start' && history.length === 0) {
+      setLines(prev => [...prev, { type: 'input', content: command }, { type: 'output', content: "AI is typing..." }]);
+      setInput('');
+      await startInterview();
+      return;
+    }
+
     const userMessage: Message = { role: 'user', content: command };
     
     setLines(prev => [...prev, { type: 'input', content: command }, { type: 'output', content: "AI is typing..." }]);
@@ -113,7 +119,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
           className="bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground font-code flex-grow"
           placeholder="Type your response..."
           autoFocus
-          disabled={isProcessing}
+          disabled={isProcessing || history.length === 0}
         />
       </form>
     </div>
