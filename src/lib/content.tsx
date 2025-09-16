@@ -1,5 +1,4 @@
 import type { App, CvContent, Project } from './types';
-import { Terminal as TerminalIcon } from 'lucide-react';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2 } from 'lucide-react';
 import CSSInvaders from '@/components/css-invaders';
+import DesktopIcon from '@/components/desktop-icon';
 
 const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -333,8 +333,25 @@ const ContactContent = ({ content }: { content: CvContent }) => (
     </div>
 );
 
+const GamesFolderContent = ({ openApp }: { openApp: (appId: string) => void }) => (
+    <div className="p-4 grid grid-cols-4 gap-4">
+        {GAME_APPS.map(app => (
+            <DesktopIcon
+                key={app.id}
+                name={app.name}
+                icon={app.icon}
+                onClick={() => openApp(app.id)}
+            />
+        ))}
+    </div>
+);
+
 
 const PlaceholderTerminal = () => React.Fragment;
+
+export const GAME_APPS: App[] = [
+    { id: 'css-invaders', name: 'CSS Invaders', icon: <GamepadIcon />, component: CSSInvaders },
+];
 
 export const APPS: App[] = [
     { id: 'about', name: 'About.txt', icon: <FileIcon color="#a7f3d0" />, component: AboutContent },
@@ -342,5 +359,5 @@ export const APPS: App[] = [
     { id: 'projects', name: 'Projects', icon: <FolderIcon />, component: ProjectsContent },
     { id: 'contact', name: 'Contact', icon: <FolderIcon />, component: ContactContent },
     { id: 'terminal', name: 'Terminal', icon: <TerminalAppIcon />, component: PlaceholderTerminal },
-    { id: 'css-invaders', name: 'CSS Invaders', icon: <GamepadIcon />, component: CSSInvaders },
+    { id: 'games', name: 'Games', icon: <FolderIcon />, component: GamesFolderContent },
 ];

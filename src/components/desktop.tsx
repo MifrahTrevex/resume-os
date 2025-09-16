@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
 import type { WindowInstance, CvContent, Project } from '@/lib/types';
-import { APPS, initialCvContent } from '@/lib/content';
+import { APPS, GAME_APPS, initialCvContent } from '@/lib/content';
 import Window from './window';
 import DesktopIcon from './desktop-icon';
 import { handleInterview } from '@/lib/actions';
@@ -23,7 +23,7 @@ type Message = {
     content: string;
 };
 
-type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe' | 'css-invaders';
+type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe' | 'css-invaders' | 'guess-the-number';
 
 const firewallRules = [
     "Rule 1: Deny all traffic from IP 192.168.1.100 (Known malicious actor).",
@@ -73,7 +73,7 @@ function generatePacket(): Packet {
     return { sourceIp, port, type: randomType, isMalicious };
 }
 
-function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' | 'projects' | 'contact' | 'css-invaders') => void; cvContent: CvContent }) {
+function Terminal({ openApp, cvContent }: { openApp: (appId: string) => void; cvContent: CvContent }) {
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [history, setHistory] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -88,6 +88,10 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
 
   // Tic-Tac-Toe State
   const [board, setBoard] = useState<( 'X' | 'O' | null)[]>(Array(9).fill(null));
+
+  // Guess the Number State
+  const [secretNumber, setSecretNumber] = useState(0);
+  const [guesses, setGuesses] = useState(0);
   
   const scrollToBottom = () => {
     endOfTerminalRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -97,7 +101,8 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     if (!initialMessageDisplayed) {
       setLines([
         { type: 'system', content: `Dickens Okoth Otieno's Desktop v1.0` },
-        { type: 'system', content: `Type 'start' to begin your interview, or type 'play firewall-defender' or 'play tic-tac-toe' to play a game.` },
+        { type: 'system', content: `Type 'start' to begin your interview, or type 'play [game_name]' to play a game.` },
+        { type: 'system', content: `Available games: firewall-defender, tic-tac-toe, guess-the-number` },
       ]);
       setInitialMessageDisplayed(true);
     }
@@ -107,6 +112,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
   useEffect(scrollToBottom, [lines]);
 
   const startInterview = useCallback(async () => {
+    setLines(prev => [...prev, { type: 'output', content: "AI is typing..." }]);
     setIsProcessing(true);
     const result: InterviewOutput = await handleInterview({
         cvContent: JSON.stringify(cvContent),
@@ -185,11 +191,8 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
               { type: 'error', content: `Incorrect! Malicious packet breached the firewall!` },
               { type: 'error', content: `--- GAME OVER ---` },
               { type: 'error', content: `Final Score: ${score}` },
-              { type: 'system', content: `Returning to interview mode. Type 'start' to begin.` }
           ]);
-          setGameMode('interview');
-          setCurrentPacket(null);
-          setHistory([]);
+          setTimeout(exitGame, 1000);
       }
   }
 
@@ -279,31 +282,83 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
     ]);
     setTimeout(exitGame, 1000);
   }
+
+   // --- Guess the Number Logic ---
+  const startGuessTheNumber = () => {
+    setGameMode('guess-the-number');
+    const newSecretNumber = Math.floor(Math.random() * 100) + 1;
+    setSecretNumber(newSecretNumber);
+    setGuesses(0);
+    setLines(prev => [
+      ...prev,
+      { type: 'system', content: 'Starting Guess the Number...' },
+      { type: 'system', content: "I'm thinking of a number between 1 and 100." },
+      { type: 'system', content: 'Enter your guess. Type `exit` to quit.' },
+    ]);
+  };
+
+  const handleGuess = (guessStr: string) => {
+    const guess = parseInt(guessStr, 10);
+    if (isNaN(guess)) {
+      setLines(prev => [...prev, { type: 'error', content: 'Please enter a valid number.' }]);
+      return;
+    }
+
+    const newGuesses = guesses + 1;
+    setGuesses(newGuesses);
+
+    if (guess === secretNumber) {
+      setLines(prev => [
+        ...prev,
+        { type: 'system', content: `You got it! The number was ${secretNumber}.` },
+        { type: 'system', content: `It took you ${newGuesses} guesses.` },
+        { type: 'system', content: `--- GAME OVER ---` },
+      ]);
+      setTimeout(exitGame, 1000);
+    } else if (guess < secretNumber) {
+      setLines(prev => [...prev, { type: 'output', content: 'Higher...' }]);
+    } else {
+      setLines(prev => [...prev, { type: 'output', content: 'Lower...' }]);
+    }
+  };
+
   
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isProcessing) return;
 
     const command = input.trim().toLowerCase();
-    const newLines: TerminalLine[] = [...lines, { type: 'input', content: command }];
-    setLines(newLines);
+    setLines(prev => [...prev, { type: 'input', content: command }]);
     setInput('');
     
-    if (command === 'play firewall-defender') {
-        startFirewallGame();
-        return;
+    if (command.startsWith('play ')) {
+        const game = command.split(' ')[1];
+        if (game === 'firewall-defender') {
+            startFirewallGame();
+            return;
+        }
+        if (game === 'tic-tac-toe') {
+          startTicTacToe();
+          return;
+        }
+        if (game === 'guess-the-number') {
+            startGuessTheNumber();
+            return;
+        }
     }
 
-    if (command === 'play tic-tac-toe') {
-      startTicTacToe();
-      return;
+    if (command === 'exit') {
+        if (gameMode !== 'interview') {
+            exitGame();
+        } else {
+             setLines(prev => [...prev, { type: 'error', content: `Not in a game. Cannot exit.` }]);
+        }
+        return;
     }
     
     if (gameMode === 'firewall-defender') {
         if (command === 'allow' || command === 'deny') {
             handleFirewallGuess(command);
-        } else if (command === 'exit') {
-            exitGame();
         } else {
             setLines(prev => [...prev, { type: 'error', content: `Unknown command in game mode. Type 'allow', 'deny', or 'exit'.` }]);
         }
@@ -314,16 +369,18 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
         const move = parseInt(command, 10);
         if (!isNaN(move)) {
             handleTicTacToeMove(move);
-        } else if (command === 'exit') {
-            exitGame();
         } else {
             setLines(prev => [...prev, { type: 'error', content: `Unknown command. Enter a number (1-9) or 'exit'.` }]);
         }
         return;
     }
 
+    if (gameMode === 'guess-the-number') {
+        handleGuess(command);
+        return;
+    }
+
     if (command === 'start' && history.length === 0) {
-      setLines(prev => [...prev, { type: 'output', content: "AI is typing..." }]);
       await startInterview();
       return;
     }
@@ -386,7 +443,8 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
           placeholder={
             gameMode === 'firewall-defender' ? `Type 'allow' or 'deny'...` :
             gameMode === 'tic-tac-toe' ? `Enter your move (1-9)...` :
-            'Type your response...'
+            gameMode === 'guess-the-number' ? `Enter your guess...` :
+            (history.length === 0 ? `Type 'start' to begin...` : 'Type your response...')
           }
           autoFocus
           disabled={isProcessing}
@@ -408,7 +466,7 @@ export default function Desktop() {
     setCvContent(prev => ({ ...prev, ...newContent }));
   }
 
-  const openApp = useCallback((appId: 'about' | 'resume' | 'projects' | 'terminal' | 'contact' | 'css-invaders') => {
+  const openApp = useCallback((appId: string) => {
     // Check if a window for this app is already open
     const existingWindow = windows.find(w => w.appId === appId);
     if (existingWindow) {
@@ -416,7 +474,8 @@ export default function Desktop() {
       return;
     }
 
-    const app = APPS.find(a => a.id === appId);
+    const allApps = [...APPS, ...GAME_APPS];
+    const app = allApps.find(a => a.id === appId);
     if (!app) return;
 
     const newZIndex = zIndexCounter.current + 1;
@@ -452,11 +511,16 @@ export default function Desktop() {
   };
   
   const renderWindowContent = (appId: WindowInstance['appId']) => {
-    const app = APPS.find(a => a.id === appId);
+    const allApps = [...APPS, ...GAME_APPS];
+    const app = allApps.find(a => a.id === appId);
     if (!app) return null;
 
     if (appId === 'terminal') {
       return <Terminal openApp={openApp} cvContent={cvContent} />;
+    }
+    
+    if (appId === 'games') {
+      return <app.component openApp={openApp} />;
     }
 
     if (appId === 'about') {
