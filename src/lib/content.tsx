@@ -1,13 +1,13 @@
 
 import type { App, CvContent, Project, Education, Referee } from './types';
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check, ExternalLink, Plus } from 'lucide-react';
+import { Trash2, Mail, Linkedin, Github, Phone, Copy, Check, ExternalLink, Plus, Edit, Settings } from 'lucide-react';
 import CSSInvaders from '@/components/css-invaders';
 import DesktopIcon from '@/components/desktop-icon';
 import HackerClicker from '@/components/hacker-clicker';
@@ -15,6 +15,7 @@ import SystemOverride from '@/components/system-override';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { PersonalInfo } from './types';
+import { Switch } from '@/components/ui/switch';
 
 
 const FileIcon = ({ color = "#fde047" }: { color?: string }) => (
@@ -47,6 +48,18 @@ const GamepadIcon = () => (
         <circle cx="46" cy="30" r="3" fill="#4ade80"/>
     </svg>
 );
+
+const AdminIcon = () => (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="64" height="64" rx="8" fill="#4A5568"/>
+        <path d="M32 36C36.4183 36 40 32.4183 40 28C40 23.5817 36.4183 20 32 20C27.5817 20 24 23.5817 24 28C24 32.4183 27.5817 36 32 36Z" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M32 44C27 44 24.5 41.5 22 39" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M32 44C37 44 39.5 41.5 42 39" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M42.001 24.0005L44.8294 25.4147L46.2436 28.2431L44.8294 31.0715L42.001 32.4857L39.1726 31.0715L37.7584 28.2431L39.1726 25.4147L42.001 24.0005Z" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M22.001 24.0005L24.8294 25.4147L26.2436 28.2431L24.8294 31.0715L22.001 32.4857L19.1726 31.0715L17.7584 28.2431L19.1726 25.4147L22.001 24.0005Z" stroke="#A0AEC0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
 
 const HackerAvatar = () => (
     <svg width="128" height="128" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -132,12 +145,12 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
         setIsEditing(false);
     }
     
-    const handlePersonalInfoChange = (field: keyof PersonalInfo, value: string) => {
-        setPersonalInfo(prev => ({ ...prev, [field]: value }));
-    }
-
-    const handleContactChange = (field: keyof PersonalInfo['contact'], value: string) => {
-        setPersonalInfo(prev => ({ ...prev, contact: { ...prev.contact, [field]: value } }));
+    const handlePersonalInfoChange = (field: keyof PersonalInfo | keyof PersonalInfo['contact'], value: string) => {
+        if (['email', 'linkedin', 'github', 'phone'].includes(field)) {
+             setPersonalInfo(prev => ({ ...prev, contact: { ...prev.contact, [field]: value } }));
+        } else {
+            setPersonalInfo(prev => ({ ...prev, [field]: value as any }));
+        }
     }
 
     return (
@@ -145,28 +158,23 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
             <div className="p-4 h-full flex flex-col">
                 <Card className="bg-card/50">
                     <CardHeader className="items-center text-center">
-                        {isEditing && isAuthenticated ? (
-                            <div className="w-full space-y-2 mb-4">
-                                <Label htmlFor="imageUrl">Profile Image URL</Label>
-                                <Input id="imageUrl" value={personalInfo.imageUrl} onChange={(e) => handlePersonalInfoChange('imageUrl', e.target.value)} />
-                            </div>
-                        ) : (
-                            <div className="rounded-full border-4 border-primary/50" data-ai-hint="hacker avatar">
-                                {content.personalInfo.imageUrl ? <img src={content.personalInfo.imageUrl} alt="Profile" className="w-32 h-32 rounded-full object-cover" /> : <HackerAvatar />}
-                            </div>
-                        )}
+                        <div className="rounded-full border-4 border-primary/50" data-ai-hint="hacker avatar">
+                            {personalInfo.imageUrl ? <img src={personalInfo.imageUrl} alt="Profile" className="w-32 h-32 rounded-full object-cover" /> : <HackerAvatar />}
+                        </div>
                         
                         {isEditing && isAuthenticated ? (
-                            <div className="w-full space-y-2">
+                            <div className="w-full space-y-2 mt-4">
                                 <Label htmlFor="name">Name</Label>
                                 <Input id="name" value={personalInfo.name} onChange={(e) => handlePersonalInfoChange('name', e.target.value)} />
                                 <Label htmlFor="title">Title</Label>
                                 <Input id="title" value={personalInfo.title} onChange={(e) => handlePersonalInfoChange('title', e.target.value)} />
+                                <Label htmlFor="imageUrl">Image URL</Label>
+                                <Input id="imageUrl" value={personalInfo.imageUrl} onChange={(e) => handlePersonalInfoChange('imageUrl', e.target.value)} />
                             </div>
                         ) : (
                             <>
-                                <CardTitle className="text-2xl pt-2">{content.personalInfo.name}</CardTitle>
-                                <CardDescription>{content.personalInfo.title}</CardDescription>
+                                <CardTitle className="text-2xl pt-2">{personalInfo.name}</CardTitle>
+                                <CardDescription>{personalInfo.title}</CardDescription>
                             </>
                         )}
                         
@@ -174,19 +182,23 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
                             {isEditing && isAuthenticated ? (
                                 <div className="w-full space-y-2 text-left">
                                     <Label htmlFor="linkedin">LinkedIn URL</Label>
-                                    <Input id="linkedin" value={personalInfo.contact.linkedin} onChange={(e) => handleContactChange('linkedin', e.target.value)} />
+                                    <Input id="linkedin" value={personalInfo.contact.linkedin} onChange={(e) => handlePersonalInfoChange('linkedin', e.target.value)} />
                                     <Label htmlFor="github">GitHub URL</Label>
-                                    <Input id="github" value={personalInfo.contact.github} onChange={(e) => handleContactChange('github', e.target.value)} />
+                                    <Input id="github" value={personalInfo.contact.github} onChange={(e) => handlePersonalInfoChange('github', e.target.value)} />
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input id="email" type="email" value={personalInfo.contact.email} onChange={(e) => handlePersonalInfoChange('email', e.target.value)} />
+                                     <Label htmlFor="phone">Phone</Label>
+                                    <Input id="phone" value={personalInfo.contact.phone} onChange={(e) => handlePersonalInfoChange('phone', e.target.value)} />
                                 </div>
                             ) : (
                                 <>
                                     <Button asChild variant="ghost" size="icon">
-                                        <a href={content.personalInfo.contact.linkedin} target="_blank" rel="noopener noreferrer">
+                                        <a href={personalInfo.contact.linkedin} target="_blank" rel="noopener noreferrer">
                                             <Linkedin />
                                         </a>
                                     </Button>
                                     <Button asChild variant="ghost" size="icon">
-                                        <a href={content.personalInfo.contact.github} target="_blank" rel="noopener noreferrer">
+                                        <a href={personalInfo.contact.github} target="_blank" rel="noopener noreferrer">
                                             <Github />
                                         </a>
                                     </Button>
@@ -198,7 +210,7 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
                         <div className="flex justify-between items-center mb-2">
                             <h2 className="text-lg font-bold font-headline text-foreground">About Me</h2>
                             {isAuthenticated && !isEditing && (
-                                <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                                <Button onClick={() => setIsEditing(true)} size="sm" variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit</Button>
                             )}
                             {isAuthenticated && isEditing && (
                                 <div className="flex gap-2">
@@ -228,11 +240,6 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
     const [isEditing, setIsEditing] = React.useState<string | null>(null);
     const [resume, setResume] = React.useState(content.resume);
     
-    const handleSave = () => {
-        onSave(resume);
-        setIsEditing(null);
-    }
-    
     const handleSectionSave = () => {
         onSave(resume);
         setIsEditing(null);
@@ -257,7 +264,6 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
     const handleSkillsChange = (value: string) => {
         setResume({...resume, skills: value.split(',').map(s => s.trim())});
     }
-
 
     const handleRefereeChange = (index: number, field: keyof Referee, value: string) => {
         const newReferees = [...resume.referees];
@@ -352,7 +358,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                 <div>
                     <div className="flex justify-between items-center mb-2">
                         <h3 className="text-lg font-semibold font-headline">Work Experience</h3>
-                         {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('experience')}>Edit</Button>}
+                         {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('experience')}><Edit className="mr-2 h-4 w-4" /> Edit</Button>}
                     </div>
                     <div className="space-y-4">
                         {content.resume.experience.map((job, i) => (
@@ -369,7 +375,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                     <div>
                          <div className="flex justify-between items-center mt-6 mb-2">
                             <h3 className="text-lg font-semibold font-headline">Education</h3>
-                            {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('education')}>Edit</Button>}
+                            {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('education')}><Edit className="mr-2 h-4 w-4" /> Edit</Button>}
                         </div>
                          <div className="space-y-4">
                             {content.resume.education.map((edu, i) => (
@@ -385,7 +391,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                 <div>
                     <div className="flex justify-between items-center mt-6 mb-2">
                         <h3 className="text-lg font-semibold font-headline">Skills</h3>
-                         {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('skills')}>Edit</Button>}
+                         {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('skills')}><Edit className="mr-2 h-4 w-4" /> Edit</Button>}
                     </div>
                     <div className="flex flex-wrap gap-2">
                         {content.resume.skills.map(skill => <span key={skill} className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">{skill}</span>)}
@@ -396,7 +402,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
                      <div>
                         <div className="flex justify-between items-center mt-6 mb-2">
                             <h3 className="text-lg font-semibold font-headline">Referees</h3>
-                            {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('referees')}>Edit</Button>}
+                            {isAuthenticated && <Button size="sm" variant="outline" onClick={() => setIsEditing('referees')}><Edit className="mr-2 h-4 w-4" /> Edit</Button>}
                         </div>
                         <div className="space-y-4">
                             {content.resume.referees.map((ref, i) => (
@@ -449,8 +455,8 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold font-headline text-foreground">Edit Projects</h2>
                     <div className="flex gap-2">
-                        <Button onClick={addProject}>Add Project</Button>
-                        <Button onClick={handleSave}>Save</Button>
+                        <Button onClick={addProject}><Plus className="mr-2 h-4 w-4" /> Add Project</Button>
+                        <Button onClick={handleSave}>Save Changes</Button>
                     </div>
                 </div>
                 <ScrollArea className="flex-grow pr-4">
@@ -491,7 +497,7 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
             <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold font-headline text-foreground">Projects</h2>
-                    {isAuthenticated && <Button onClick={() => setIsEditing(true)}>Edit</Button>}
+                    {isAuthenticated && <Button onClick={() => setIsEditing(true)}><Edit className="mr-2 h-4 w-4" /> Edit Projects</Button>}
                 </div>
                 {content.projects.length > 0 ? (
                     <div className="space-y-4">
@@ -573,15 +579,18 @@ const ContactContent = ({ content }: { content: CvContent }) => {
 };
 
 
-const GamesFolderContent = ({ openApp }: { openApp: (appId: string) => void }) => {
+const GamesFolderContent = ({ openApp, games }: { openApp: (appId: string) => void; games: App[] }) => {
+    const { isAuthenticated } = useAuth();
     const ICONS_PER_ROW = 4;
-    const ICON_WIDTH = 96; // Corresponds to w-24
-    const ICON_HEIGHT = 96; // Corresponds to h-24
-    const PADDING = 16; // Corresponds to p-4
+    const ICON_WIDTH = 96;
+    const ICON_HEIGHT = 96;
+    const PADDING = 16;
+
+    const visibleGames = isAuthenticated ? games : games.filter(g => g.active);
 
     return (
         <div className="relative p-4 h-full w-full">
-            {GAME_APPS.map((app, index) => {
+            {visibleGames.map((app, index) => {
                 const row = Math.floor(index / ICONS_PER_ROW);
                 const col = index % ICONS_PER_ROW;
                 const initialPosition = {
@@ -589,53 +598,74 @@ const GamesFolderContent = ({ openApp }: { openApp: (appId: string) => void }) =
                     y: row * (ICON_HEIGHT + PADDING),
                 };
                 return (
-                    <DesktopIcon
-                        key={app.id}
-                        name={app.name}
-                        icon={app.icon}
-                        onClick={() => openApp(app.id)}
-                        initialPosition={initialPosition}
-                    />
+                    <div key={app.id} className="relative">
+                        <DesktopIcon
+                            name={app.name}
+                            icon={app.icon}
+                            onClick={() => openApp(app.id)}
+                            initialPosition={initialPosition}
+                        />
+                        {isAuthenticated && !app.active && (
+                            <div className="absolute top-0 right-0 p-1 bg-destructive rounded-full text-destructive-foreground text-xs" style={{ top: initialPosition.y, left: initialPosition.x + ICON_WIDTH - 20}}>
+                                Off
+                            </div>
+                        )}
+                    </div>
                 );
             })}
         </div>
     );
 };
 
+const GameManagerContent = ({ games, onToggle }: { games: App[], onToggle: (gameId: string) => void }) => {
+    return (
+        <ScrollArea className="h-full">
+            <div className="p-4">
+                <Card className="bg-card/50">
+                    <CardHeader>
+                        <CardTitle>Game Manager</CardTitle>
+                        <CardDescription>Activate or deactivate games for visitors.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {games.map(game => (
+                                <div key={game.id} className="flex items-center justify-between p-2 border rounded-md">
+                                    <Label htmlFor={`switch-${game.id}`}>{game.name}</Label>
+                                    <Switch
+                                        id={`switch-${game.id}`}
+                                        checked={game.active}
+                                        onCheckedChange={() => onToggle(game.id)}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        </ScrollArea>
+    );
+};
+
 
 const PlaceholderTerminal = () => React.Fragment;
 
-export const GAME_APPS: App[] = [
-    { id: 'css-invaders', name: 'CSS Invaders', icon: <GamepadIcon />, component: CSSInvaders, isTerminal: false },
-    { id: 'data-breach', name: 'Data Breach', icon: <GamepadIcon />, component: HackerClicker, isTerminal: false },
-    { id: 'system-override', name: 'System Override', icon: <GamepadIcon />, component: SystemOverride, isTerminal: false },
-    { id: 'firewall-defender-game', name: 'Firewall Defender', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
-    { id: 'tic-tac-toe-game', name: 'Tic-Tac-Toe', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
-    { id: 'guess-the-number-game', name: 'Guess The Number', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
-    { id: 'netrun-game', name: 'NetRun', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
-    { id: 'mainframe-breach-game', name: 'Mainframe Breach', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true },
+export const initialGameApps: App[] = [
+    { id: 'css-invaders', name: 'CSS Invaders', icon: <GamepadIcon />, component: CSSInvaders, isTerminal: false, active: true },
+    { id: 'data-breach', name: 'Data Breach', icon: <GamepadIcon />, component: HackerClicker, isTerminal: false, active: true },
+    { id: 'system-override', name: 'System Override', icon: <GamepadIcon />, component: SystemOverride, isTerminal: false, active: true },
+    { id: 'firewall-defender-game', name: 'Firewall Defender', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: true },
+    { id: 'tic-tac-toe-game', name: 'Tic-Tac-Toe', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: true },
+    { id: 'guess-the-number-game', name: 'Guess The Number', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: false },
+    { id: 'netrun-game', name: 'NetRun', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: false },
+    { id: 'mainframe-breach-game', name: 'Mainframe Breach', icon: <GamepadIcon />, component: PlaceholderTerminal, isTerminal: true, active: false },
 ];
 
-export const APPS: App[] = [
-    { id: 'about', name: 'About.txt', icon: <FileIcon color="#a7f3d0" />, component: AboutContent },
-    { id: 'resume', name: 'Resume.pdf', icon: <FileIcon color="#fecaca" />, component: ResumeContent },
-    { id: 'projects', name: 'Projects', icon: <FolderIcon />, component: ProjectsContent },
-    { id: 'contact', name: 'Contact', icon: <FolderIcon />, component: ContactContent },
+export const ALL_APPS: (cvContent: CvContent, games: App[], onGameToggle: (gameId: string) => void) => App[] = (cvContent, games, onGameToggle) => [
+    { id: 'about', name: 'About.txt', icon: <FileIcon color="#a7f3d0" />, component: (props: any) => <AboutContent {...props} content={cvContent} /> },
+    { id: 'resume', name: 'Resume.pdf', icon: <FileIcon color="#fecaca" />, component: (props: any) => <ResumeContent {...props} content={cvContent} /> },
+    { id: 'projects', name: 'Projects', icon: <FolderIcon />, component: (props: any) => <ProjectsContent {...props} content={cvContent} /> },
+    { id: 'contact', name: 'Contact', icon: <FolderIcon />, component: () => <ContactContent content={cvContent} /> },
     { id: 'terminal', name: 'Terminal', icon: <TerminalAppIcon />, component: PlaceholderTerminal },
-    { id: 'games', name: 'Games', icon: <FolderIcon />, component: GamesFolderContent },
+    { id: 'games', name: 'Games', icon: <FolderIcon />, component: (props: any) => <GamesFolderContent {...props} games={games} /> },
+    { id: 'game-manager', name: 'Game Manager', icon: <AdminIcon />, component: () => <GameManagerContent games={games} onToggle={onGameToggle} /> },
 ];
-
-    
-
-      
-
-    
-
-
-
-
-    
-
-    
-
-    

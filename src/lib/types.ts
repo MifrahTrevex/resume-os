@@ -6,6 +6,7 @@ export type App = {
   icon: React.ReactNode;
   component: React.ComponentType<any>;
   isTerminal?: boolean;
+  active?: boolean; // Add active state for games
 };
 
 export type WindowInstance = {
@@ -74,3 +75,4 @@ export type CvContent = {
       
 
     
+

@@ -3,8 +3,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, type FormEvent } from 'react';
-import type { WindowInstance, CvContent, Project } from '@/lib/types';
-import { APPS, GAME_APPS, initialCvContent } from '@/lib/content';
+import type { WindowInstance, CvContent, Project, App } from '@/lib/types';
+import { initialGameApps, initialCvContent, ALL_APPS } from '@/lib/content';
 import Window from './window';
 import DesktopIcon from './desktop-icon';
 import { handleInterview, handleCommand } from '@/lib/actions';
@@ -168,18 +168,14 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
     // Command parsing for starting games or AI interpretation
     if (lowerCaseCommand.startsWith('play ')) {
         const game = lowerCaseCommand.split(' ')[1];
-        if (game === 'firewall-defender') {
-            startFirewallGame();
-        } else if (game === 'tic-tac-toe') {
-            startTicTacToe();
-        } else if (game === 'guess-the-number') {
-            startGuessTheNumber();
-        } else if (game === 'netrun') {
-            startNetRun();
-        } else if (game === 'mainframe-breach') {
-            startMainframeBreach();
+        if (initialGameApps.some(g => g.id.startsWith(game) && g.isTerminal)) {
+             if (game === 'firewall-defender') startFirewallGame();
+             else if (game === 'tic-tac-toe') startTicTacToe();
+             else if (game === 'guess-the-number') startGuessTheNumber();
+             else if (game === 'netrun') startNetRun();
+             else if (game === 'mainframe-breach') startMainframeBreach();
         } else {
-             setLines(prev => [...prev, { type: 'error', content: `Unknown game: ${game}` }]);
+             setLines(prev => [...prev, { type: 'error', content: `Unknown or inactive game: ${game}` }]);
         }
     } else {
       // AI Command Interpretation for non-game commands
@@ -698,13 +694,23 @@ export default function Desktop() {
   const [cvContent, setCvContent] = useState<CvContent>(initialCvContent);
   const zIndexCounter = useRef(10);
   const [terminalInitialCommand, setTerminalInitialCommand] = useState<string | undefined>(undefined);
+  const [gameApps, setGameApps] = useState<App[]>(initialGameApps);
+
+  const handleGameToggle = (gameId: string) => {
+    setGameApps(prev => prev.map(game => 
+        game.id === gameId ? { ...game, active: !game.active } : game
+    ));
+  };
+  
+  const APPS = ALL_APPS(cvContent, gameApps, handleGameToggle);
 
   const handleContentUpdate = (newContent: Partial<CvContent>) => {
     setCvContent(prev => ({ ...prev, ...newContent }));
   }
 
   const openApp = useCallback((appId: string) => {
-    const isTerminalGame = GAME_APPS.some(game => game.id === appId && game.isTerminal);
+    const gameApp = gameApps.find(g => g.id === appId);
+    const isTerminalGame = gameApp && gameApp.isTerminal;
 
     if (isTerminalGame) {
         setTerminalInitialCommand(`play ${appId.replace('-game', '')}`);
@@ -713,7 +719,6 @@ export default function Desktop() {
         if (terminalWindow) {
             focusWindow(terminalWindow.id);
         } else {
-            // openApp('terminal') is called inside the `else` block for a new window
             const app = APPS.find(a => a.id === 'terminal');
              if (!app) return;
 
@@ -739,8 +744,7 @@ export default function Desktop() {
       return;
     }
 
-    const allApps = [...APPS, ...GAME_APPS];
-    const app = allApps.find(a => a.id === appId);
+    const app = APPS.find(a => a.id === appId);
     if (!app) return;
 
     const newZIndex = zIndexCounter.current + 1;
@@ -755,10 +759,9 @@ export default function Desktop() {
     };
     setWindows(prev => [...prev, newWindow]);
     setActiveWindow(newWindow.id);
-  }, [windows]);
+  }, [windows, gameApps, APPS]);
 
   useEffect(() => {
-      // Clear the initial command after the terminal window has been created/focused
       if (terminalInitialCommand && windows.some(w => w.appId === 'terminal')) {
           const timer = setTimeout(() => setTerminalInitialCommand(undefined), 100);
           return () => clearTimeout(timer);
@@ -784,32 +787,24 @@ export default function Desktop() {
   };
   
   const renderWindowContent = (win: WindowInstance) => {
-    const allApps = [...APPS, ...GAME_APPS];
-    const app = allApps.find(a => a.id === win.appId);
+    const app = APPS.find(a => a.id === win.appId);
     if (!app) return null;
 
     if (win.appId === 'terminal') {
         return <Terminal openApp={openApp} cvContent={cvContent} initialCommand={terminalInitialCommand} />;
     }
     
-    if (win.appId === 'games') {
-      return <app.component openApp={openApp} />;
-    }
-
-    if (win.appId === 'about') {
-        return <app.component content={cvContent} onSave={(newContent: Partial<CvContent>) => handleContentUpdate(newContent)} />;
+    if (['about', 'resume', 'projects'].includes(win.appId)) {
+        return <app.component onSave={handleContentUpdate} />;
     }
     
-    if (win.appId === 'resume') {
-        return <app.component content={cvContent} onSave={(newResume: CvContent['resume']) => handleContentUpdate({ resume: newResume })} />;
-    }
-
-    if (win.appId === 'projects') {
-        return <app.component content={cvContent} onSave={(newProjects: Project[]) => handleContentUpdate({ projects: newProjects })} />;
-    }
-    
-    return <app.component content={cvContent} />;
+    return <app.component openApp={openApp} />;
   };
+
+  const desktopApps = APPS.filter(app => {
+      if (app.id === 'game-manager') return isAuthenticated;
+      return !initialGameApps.some(g => g.id === app.id) && app.id !== 'game-manager';
+  });
 
   return (
     <div className="relative w-full h-full p-4 overflow-hidden">
@@ -825,7 +820,7 @@ export default function Desktop() {
          </div>
        )}
       <div className="relative w-full h-full">
-        {APPS.map((app, index) => (
+        {desktopApps.map((app, index) => (
           <DesktopIcon
             key={app.id}
             name={app.name}
