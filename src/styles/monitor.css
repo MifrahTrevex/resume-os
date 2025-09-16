@@ -5,10 +5,11 @@
   max-width: 1400px;
   max-height: 900px;
   padding: 1.5rem;
-  background-color: #2a2a2e;
+  background-color: hsl(var(--secondary) / 0.5);
   border-radius: 1rem;
+  border: 2px solid hsl(var(--border) / 0.5);
   box-shadow: 
-    0 0 10px rgba(0,0,0,0.5),
+    0 0 25px rgba(0,0,0,0.5),
     inset 0 0 15px rgba(0,0,0,0.7);
   position: relative;
   display: flex;
@@ -17,13 +18,14 @@
 
 .monitor-bezel {
   flex-grow: 1;
-  background-color: #1c1c1f;
+  background-color: hsl(var(--card));
   border-radius: 0.5rem;
   padding: 1rem;
   box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
   position: relative;
   display: flex;
   flex-direction: column;
+  border: 1px solid hsl(var(--border));
 }
 
 .monitor-screen {
@@ -33,7 +35,9 @@
   overflow: hidden;
   border-radius: 4px; /* Slight rounding on the actual screen */
   box-shadow: 0 0 20px hsl(var(--primary) / 0.1);
-  transform: perspective(300px) rotateX(2deg); /* Subtle curve */
+  /* Subtle curve effect */
+  transform: perspective(300px) rotateX(2deg) scale(1.02); 
+  border: 2px solid hsl(var(--background));
 }
 
 /* This makes sure the content inside fills the screen */
@@ -45,22 +49,25 @@
 .monitor-stand {
   width: 30%;
   height: 30px;
-  background-color: #2a2a2e;
-  margin: 1.5rem auto -1.5rem; /* Pushes stand down */
+  background-color: hsl(var(--secondary) / 0.5);
+  margin: 1.5rem auto -2.5rem; /* Pushes stand down */
   position: relative;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   box-shadow: 0 5px 10px rgba(0,0,0,0.4);
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-top: none;
 }
 
 .monitor-stand-base {
   width: 150%;
   height: 10px;
-  background-color: #222;
+  background-color: hsl(var(--secondary) / 0.3);
   position: absolute;
   bottom: -10px;
   left: -25%;
   border-radius: 5px;
+  border: 1px solid hsl(var(--border) / 0.5);
 }
 
 .monitor-brand {
@@ -71,6 +78,7 @@
   font-family: var(--font-headline);
   color: hsl(var(--foreground) / 0.3);
   font-size: 0.8rem;
+  font-weight: bold;
 }
 
 .monitor-brand::after {
@@ -105,8 +113,16 @@
     .monitor-bezel {
         padding: 0.5rem;
     }
+    
+    .monitor-screen {
+        transform: none; /* Remove perspective on mobile */
+    }
 
     .monitor-stand {
         display: none;
+    }
+    
+    .monitor-brand {
+        font-size: 0.7rem;
     }
 }
