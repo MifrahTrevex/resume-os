@@ -74,6 +74,8 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
       return;
     }
 
+    if (history.length === 0) return;
+
     const userMessage: Message = { role: 'user', content: command };
     
     setLines(prev => [...prev, { type: 'input', content: command }, { type: 'output', content: "AI is typing..." }]);
@@ -127,7 +129,7 @@ function Terminal({ openApp, cvContent }: { openApp: (appId: 'about' | 'resume' 
           className="bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground font-code flex-grow"
           placeholder="Type your response..."
           autoFocus
-          disabled={isProcessing || history.length === 0}
+          disabled={isProcessing}
         />
       </form>
     </div>
