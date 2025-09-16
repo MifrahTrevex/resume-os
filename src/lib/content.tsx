@@ -71,17 +71,9 @@ export const initialCvContent: CvContent = {
 
 
 const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: string) => void }) => {
-    const { userType, promptLogin, isAuthenticated } = useAuth();
+    const { isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [about, setAbout] = useState(content.about);
-
-    const handleEditClick = () => {
-        if (userType === 'admin') {
-            setIsEditing(true);
-        } else {
-            promptLogin();
-        }
-    }
 
     const handleSave = () => {
         onSave(about);
@@ -93,13 +85,13 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
             <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-bold font-headline text-foreground">About Me</h2>
                 {isAuthenticated && !isEditing && (
-                    <Button onClick={handleEditClick}>Edit</Button>
+                    <Button onClick={() => setIsEditing(true)}>Edit</Button>
                 )}
                 {isAuthenticated && isEditing && (
                     <Button onClick={handleSave}>Save</Button>
                 )}
             </div>
-            {isEditing && userType === 'admin' ? (
+            {isEditing && isAuthenticated ? (
                  <Textarea 
                     value={about}
                     onChange={(e) => setAbout(e.target.value)}
@@ -113,18 +105,10 @@ const AboutContent = ({ content, onSave }: { content: CvContent; onSave: (newCon
 };
 
 const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newContent: CvContent['resume']) => void }) => {
-    const { userType, promptLogin, isAuthenticated } = useAuth();
+    const { isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [resume, setResume] = useState(content.resume);
     
-    const handleEditClick = () => {
-        if (userType === 'admin') {
-            setIsEditing(true);
-        } else {
-            promptLogin();
-        }
-    }
-
     const handleSave = () => {
         onSave(resume);
         setIsEditing(false);
@@ -136,7 +120,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
         setResume({...resume, experience: newExperience});
     }
 
-    if (isEditing && userType === 'admin') {
+    if (isEditing && isAuthenticated) {
         return (
             <div className="p-4 space-y-6 h-full flex flex-col">
                 <div className="flex justify-between items-center">
@@ -183,7 +167,7 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
             <div className="p-4 space-y-6">
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-bold font-headline text-foreground">Resume</h2>
-                    {isAuthenticated && <Button onClick={handleEditClick}>Edit</Button>}
+                    {isAuthenticated && <Button onClick={() => setIsEditing(true)}>Edit</Button>}
                 </div>
                 <div>
                     <h3 className="text-lg font-semibold font-headline mb-2">Work Experience</h3>
@@ -222,17 +206,9 @@ const ResumeContent = ({ content, onSave }: { content: CvContent; onSave: (newCo
 };
 
 const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (newProjects: Project[]) => void }) => {
-    const { userType, promptLogin, isAuthenticated } = useAuth();
+    const { isAuthenticated } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [projects, setProjects] = useState(content.projects);
-
-    const handleEditClick = () => {
-        if (userType === 'admin') {
-            setIsEditing(true);
-        } else {
-            promptLogin();
-        }
-    };
 
     const handleSave = () => {
         onSave(projects);
@@ -258,7 +234,7 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
         setProjects(newProjects);
     };
 
-    if (isEditing && userType === 'admin') {
+    if (isEditing && isAuthenticated) {
         return (
             <div className="p-4 h-full flex flex-col">
                 <div className="flex justify-between items-center mb-4">
@@ -310,7 +286,7 @@ const ProjectsContent = ({ content, onSave }: { content: CvContent, onSave: (new
             <div className="p-4">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold font-headline text-foreground">Projects</h2>
-                    {isAuthenticated && <Button onClick={handleEditClick}>Edit</Button>}
+                    {isAuthenticated && <Button onClick={() => setIsEditing(true)}>Edit</Button>}
                 </div>
                 {content.projects.length > 0 ? (
                     <div className="space-y-4">
