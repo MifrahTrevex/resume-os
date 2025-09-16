@@ -935,6 +935,7 @@ export default function Desktop() {
         windows={windows}
         apps={APPS}
         onTaskbarClick={handleTaskbarClick}
+        onWindowClose={closeWindow}
         activeWindowId={activeWindow}
         onAppLaunch={openApp}
         onShutdown={() => setPowerState('confirming')}
