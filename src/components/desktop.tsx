@@ -23,7 +23,7 @@ type Message = {
     content: string;
 };
 
-type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe' | 'css-invaders' | 'guess-the-number';
+type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe' | 'css-invaders' | 'guess-the-number' | 'netrun';
 
 const firewallRules = [
     "Rule 1: Deny all traffic from IP 192.168.1.100 (Known malicious actor).",
@@ -73,6 +73,14 @@ function generatePacket(): Packet {
     return { sourceIp, port, type: randomType, isMalicious };
 }
 
+// --- NetRun Game Types and Logic ---
+const NODE_TYPES = ['─', '│', '┌', '┐', '└', '┘'] as const;
+type NodeType = typeof NODE_TYPES[number];
+type Node = { type: NodeType, fixed: boolean };
+type Grid = (Node | null)[][];
+const GRID_SIZE = 6;
+// --- End NetRun Game Types ---
+
 function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: string) => void; cvContent: CvContent, initialCommand?: string }) {
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [history, setHistory] = useState<Message[]>([]);
@@ -92,6 +100,12 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
   // Guess the Number State
   const [secretNumber, setSecretNumber] = useState(0);
   const [guesses, setGuesses] = useState(0);
+
+  // NetRun State
+  const [netRunGrid, setNetRunGrid] = useState<Grid | null>(null);
+  const [startPos, setStartPos] = useState({ r: 0, c: 0 });
+  const [endPos, setEndPos] = useState({ r: 0, c: 0 });
+
   
   const scrollToBottom = () => {
     endOfTerminalRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -109,19 +123,17 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
         const game = lowerCaseCommand.split(' ')[1];
         if (game === 'firewall-defender') {
             startFirewallGame();
-            setIsProcessing(false);
-            return;
-        }
-        if (game === 'tic-tac-toe') {
-          startTicTacToe();
-          setIsProcessing(false);
-          return;
-        }
-        if (game === 'guess-the-number') {
+        } else if (game === 'tic-tac-toe') {
+            startTicTacToe();
+        } else if (game === 'guess-the-number') {
             startGuessTheNumber();
-            setIsProcessing(false);
-            return;
+        } else if (game === 'netrun') {
+            startNetRun();
+        } else {
+             setLines(prev => [...prev, { type: 'error', content: `Unknown game: ${game}` }]);
         }
+        setIsProcessing(false);
+        return;
     }
 
     if (lowerCaseCommand === 'exit') {
@@ -140,52 +152,44 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
         } else {
             setLines(prev => [...prev, { type: 'error', content: `Unknown command in game mode. Type 'allow', 'deny', or 'exit'.` }]);
         }
-        setIsProcessing(false);
-        return;
-    }
-    
-    if (gameMode === 'tic-tac-toe') {
+    } else if (gameMode === 'tic-tac-toe') {
         const move = parseInt(lowerCaseCommand, 10);
         if (!isNaN(move)) {
             handleTicTacToeMove(move);
         } else {
             setLines(prev => [...prev, { type: 'error', content: `Unknown command. Enter a number (1-9) or 'exit'.` }]);
         }
-        setIsProcessing(false);
-        return;
-    }
-
-    if (gameMode === 'guess-the-number') {
+    } else if (gameMode === 'guess-the-number') {
         handleGuess(lowerCaseCommand);
-        setIsProcessing(false);
-        return;
-    }
-
-    // AI Command Interpretation for non-game commands
-    const result = await handleCommand(lowerCaseCommand);
-    setLines(prev => [...prev, { type: 'system', content: `AI > ${result.reason}` }]);
-    
-    switch (result.action) {
-        case 'OPEN_RESUME':
-            openApp('resume');
-            break;
-        case 'SHOW_PROJECTS':
-            openApp('projects');
-            break;
-        case 'OPEN_LINK':
-            if (result.link) {
-                window.open(result.link, '_blank');
-            }
-            break;
-        case 'INVALID':
-            // The reason is already displayed
-            break;
-        default:
-            setLines(prev => [...prev, { type: 'error', content: `Unknown action: ${result.action}` }]);
+    } else if (gameMode === 'netrun') {
+        handleNetRunMove(lowerCaseCommand);
+    } else {
+      // AI Command Interpretation for non-game commands
+      const result = await handleCommand(lowerCaseCommand);
+      setLines(prev => [...prev, { type: 'system', content: `AI > ${result.reason}` }]);
+      
+      switch (result.action) {
+          case 'OPEN_RESUME':
+              openApp('resume');
+              break;
+          case 'SHOW_PROJECTS':
+              openApp('projects');
+              break;
+          case 'OPEN_LINK':
+              if (result.link) {
+                  window.open(result.link, '_blank');
+              }
+              break;
+          case 'INVALID':
+              // The reason is already displayed
+              break;
+          default:
+              setLines(prev => [...prev, { type: 'error', content: `Unknown action: ${result.action}` }]);
+      }
     }
     
     setIsProcessing(false);
-  }, [gameMode, openApp, currentPacket, score, board, secretNumber, guesses]);
+  }, [gameMode, openApp, currentPacket, score, board, secretNumber, guesses, netRunGrid]);
   
   useEffect(() => {
     if (!initialMessageDisplayed) {
@@ -207,6 +211,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
       setGameMode('interview');
       setCurrentPacket(null);
       setBoard(Array(9).fill(null));
+      setNetRunGrid(null);
       setHistory([]);
       setLines(prev => [
           ...prev,
@@ -277,10 +282,10 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
       { type: 'system', content: 'Enter a number from 1 to 9 to make your move.' },
       { type: 'system', content: "Type 'exit' to quit." },
     ]);
-    displayBoard(Array(9).fill(null));
+    displayTicTacToeBoard(Array(9).fill(null));
   };
 
-  const displayBoard = (currentBoard: ( 'X' | 'O' | null)[]) => {
+  const displayTicTacToeBoard = (currentBoard: ( 'X' | 'O' | null)[]) => {
     const boardStr = [0, 1, 2].map(row => 
         [0, 1, 2].map(col => {
             const i = row * 3 + col;
@@ -291,7 +296,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
     setLines(prev => [...prev, { type: 'output', content: `\n${boardStr}\n` }]);
   };
 
-  const checkWinner = (currentBoard: ( 'X' | 'O' | null)[]) => {
+  const checkTicTacToeWinner = (currentBoard: ( 'X' | 'O' | null)[]) => {
     const lines = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
       [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
@@ -315,7 +320,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
     let newBoard = [...board];
     newBoard[move - 1] = 'X';
 
-    let winner = checkWinner(newBoard);
+    let winner = checkTicTacToeWinner(newBoard);
     if (winner) {
       endTicTacToe(winner, newBoard);
       return;
@@ -329,16 +334,16 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
     }
     
     setBoard(newBoard);
-    displayBoard(newBoard);
+    displayTicTacToeBoard(newBoard);
 
-    winner = checkWinner(newBoard);
+    winner = checkTicTacToeWinner(newBoard);
     if (winner) {
       endTicTacToe(winner, newBoard);
     }
   };
 
   const endTicTacToe = (winner: string, finalBoard: ( 'X' | 'O' | null)[]) => {
-    displayBoard(finalBoard);
+    displayTicTacToeBoard(finalBoard);
     let message = '';
     if (winner === 'draw') {
       message = "It's a draw!";
@@ -392,7 +397,128 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
     }
   };
 
-  
+  // --- NetRun Logic ---
+  const startNetRun = () => {
+    setGameMode('netrun');
+    const newGrid = Array.from({ length: GRID_SIZE }, () =>
+        Array.from({ length: GRID_SIZE }, () => ({
+            type: NODE_TYPES[Math.floor(Math.random() * NODE_TYPES.length)],
+            fixed: false
+        }))
+    );
+    const start = { r: Math.floor(Math.random() * GRID_SIZE), c: 0 };
+    const end = { r: Math.floor(Math.random() * GRID_SIZE), c: GRID_SIZE - 1 };
+    newGrid[start.r][start.c] = { type: '─', fixed: true };
+    newGrid[end.r][end.c] = { type: '─', fixed: true };
+    setStartPos(start);
+    setEndPos(end);
+    setNetRunGrid(newGrid);
+
+    setLines(prev => [
+      ...prev,
+      { type: 'system', content: 'Initializing NetRun...' },
+      { type: 'system', content: 'Connect the Server [S] to the Terminal [T] by rotating nodes.' },
+      { type: 'system', content: 'Command: `rotate [row] [col]`, e.g., `rotate 2 3`' },
+      { type: 'system', content: "Type 'exit' to quit." },
+    ]);
+    displayNetRunGrid(newGrid, start, end);
+  };
+
+  const displayNetRunGrid = (grid: Grid, start: { r: number, c: number }, end: { r: number, c: number }) => {
+    const gridStr = grid.map((row, r) =>
+        '  ' + row.map((node, c) => {
+            if (r === start.r && c === start.c) return 'S';
+            if (r === end.r && c === end.c) return 'T';
+            return node ? node.type : ' ';
+        }).join(' ')
+    ).join('\n');
+    const colHeaders = '    ' + Array.from({ length: GRID_SIZE }, (_, i) => i).join(' ');
+    const finalStr = `${colHeaders}\n${gridStr.split('\n').map((row, i) => `${i} ${row.substring(1)}`).join('\n')}`;
+    setLines(prev => [...prev, { type: 'output', content: `\n${finalStr}\n` }]);
+  };
+
+  const checkNetRunWin = (grid: Grid, start: { r: number, c: number }, end: { r: number, c: number }) => {
+    const q: { r: number, c: number }[] = [start];
+    const visited = new Set<string>([`${start.r},${start.c}`]);
+    const connections: Record<NodeType, { n?: boolean, s?: boolean, e?: boolean, w?: boolean }> = {
+        '─': { w: true, e: true },
+        '│': { n: true, s: true },
+        '┌': { s: true, e: true },
+        '┐': { s: true, w: true },
+        '└': { n: true, e: true },
+        '┘': { n: true, w: true },
+    };
+    
+    while (q.length > 0) {
+        const { r, c } = q.shift()!;
+        if (r === end.r && c === end.c) return true;
+
+        const node = grid[r][c];
+        if (!node) continue;
+        const nodeConnections = connections[node.type];
+        
+        // North
+        if (nodeConnections.n && r > 0 && grid[r - 1][c] && connections[grid[r-1][c]!.type].s && !visited.has(`${r - 1},${c}`)) {
+            visited.add(`${r-1},${c}`); q.push({r: r-1, c});
+        }
+        // South
+        if (nodeConnections.s && r < GRID_SIZE - 1 && grid[r + 1][c] && connections[grid[r+1][c]!.type].n && !visited.has(`${r + 1},${c}`)) {
+            visited.add(`${r+1},${c}`); q.push({r: r+1, c});
+        }
+        // West
+        if (nodeConnections.w && c > 0 && grid[r][c-1] && connections[grid[r][c-1]!.type].e && !visited.has(`${r},${c-1}`)) {
+            visited.add(`${r},${c-1}`); q.push({r, c: c-1});
+        }
+        // East
+        if (nodeConnections.e && c < GRID_SIZE - 1 && grid[r][c+1] && connections[grid[r][c+1]!.type].w && !visited.has(`${r},${c+1}`)) {
+            visited.add(`${r},${c+1}`); q.push({r, c: c+1});
+        }
+    }
+    return false;
+  };
+
+  const handleNetRunMove = (move: string) => {
+    if (!netRunGrid) return;
+
+    const parts = move.split(' ');
+    if (parts.length !== 3 || parts[0] !== 'rotate') {
+      setLines(prev => [...prev, { type: 'error', content: 'Invalid command. Use `rotate [row] [col]`.' }]);
+      return;
+    }
+    const r = parseInt(parts[1], 10);
+    const c = parseInt(parts[2], 10);
+
+    if (isNaN(r) || isNaN(c) || r < 0 || r >= GRID_SIZE || c < 0 || c >= GRID_SIZE) {
+        setLines(prev => [...prev, { type: 'error', content: 'Coordinates out of bounds.' }]);
+        return;
+    }
+
+    const node = netRunGrid[r][c];
+    if (!node || node.fixed) {
+        setLines(prev => [...prev, { type: 'error', content: 'Cannot rotate this node.' }]);
+        return;
+    }
+
+    const newGrid = netRunGrid.map(row => row.map(cell => ({...cell})));
+    const currentNodeType = newGrid[r][c]!.type;
+    const currentIndex = NODE_TYPES.indexOf(currentNodeType);
+    const nextIndex = (currentIndex + 1) % NODE_TYPES.length;
+    newGrid[r][c]!.type = NODE_TYPES[nextIndex];
+    
+    setNetRunGrid(newGrid);
+    displayNetRunGrid(newGrid, startPos, endPos);
+    
+    if (checkNetRunWin(newGrid, startPos, endPos)) {
+        setLines(prev => [
+            ...prev,
+            { type: 'system', content: `--- CONNECTION ESTABLISHED! ---` },
+            { type: 'system', content: `--- YOU WIN! ---` },
+        ]);
+        setTimeout(exitGame, 1000);
+    }
+  };
+
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (isProcessing) return;
@@ -423,6 +549,7 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
             gameMode === 'firewall-defender' ? `Type 'allow' or 'deny'...` :
             gameMode === 'tic-tac-toe' ? `Enter your move (1-9)...` :
             gameMode === 'guess-the-number' ? `Enter your guess...` :
+            gameMode === 'netrun' ? `rotate r c...` :
             `Type a command...`
           }
           autoFocus
@@ -456,7 +583,22 @@ export default function Desktop() {
         if (terminalWindow) {
             focusWindow(terminalWindow.id);
         } else {
-            openApp('terminal');
+            // openApp('terminal') is called inside the `else` block for a new window
+            const app = APPS.find(a => a.id === 'terminal');
+             if (!app) return;
+
+            const newZIndex = zIndexCounter.current + 1;
+            zIndexCounter.current = newZIndex;
+            const newWindow: WindowInstance = {
+              id: `terminal-${Date.now()}`,
+              appId: 'terminal',
+              title: app.name,
+              position: { x: 50 + windows.length * 20, y: 50 + windows.length * 20 },
+              size: { width: 640, height: 480 },
+              zIndex: newZIndex,
+            };
+            setWindows(prev => [...prev, newWindow]);
+            setActiveWindow(newWindow.id);
         }
         return;
     }
