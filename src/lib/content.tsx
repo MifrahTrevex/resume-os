@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import type { PersonalInfo } from './types';
 import { Switch } from '@/components/ui/switch';
+import TaskManager from '@/components/task-manager';
 
 const FileIcon = ({ colorClass = "text-primary/70", type = 'file' }: { colorClass?: string, type?: 'file' | 'pdf' }) => (
     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={`s-6 w-16 h-16 ${colorClass}`}>
