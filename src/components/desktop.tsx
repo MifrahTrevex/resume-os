@@ -10,9 +10,19 @@ import DesktopIcon from './desktop-icon';
 import { handleInterview, handleCommand } from '@/lib/actions';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Power, RefreshCcw, XCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import type { InterviewOutput } from '@/ai/flows/interview-flow';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type TerminalLine = {
   type: 'input' | 'output' | 'system' | 'error';
@@ -25,6 +35,7 @@ type Message = {
 };
 
 type GameMode = 'interview' | 'firewall-defender' | 'tic-tac-toe' | 'css-invaders' | 'guess-the-number' | 'netrun' | 'mainframe-breach';
+type PowerState = 'running' | 'confirming' | 'shutting_down' | 'restarting' | 'off';
 
 const firewallRules = [
     "Rule 1: Deny all traffic from IP 192.168.1.100 (Known malicious actor).",
@@ -695,6 +706,8 @@ export default function Desktop() {
   const zIndexCounter = useRef(10);
   const [terminalInitialCommand, setTerminalInitialCommand] = useState<string | undefined>(undefined);
   const [gameApps, setGameApps] = useState<App[]>(initialGameApps);
+  const [powerState, setPowerState] = useState<PowerState>('running');
+  const [powerMessage, setPowerMessage] = useState('');
 
   const handleGameToggle = (gameId: string) => {
     setGameApps(prev => prev.map(game => 
@@ -707,6 +720,24 @@ export default function Desktop() {
   const handleContentUpdate = (newContent: Partial<CvContent>) => {
     setCvContent(prev => ({ ...prev, ...newContent }));
   }
+  
+    const handleShutdown = () => {
+        setPowerState('shutting_down');
+        setPowerMessage('Shutting Down...');
+        setTimeout(() => {
+            setPowerState('off');
+            setPowerMessage('System Halted.');
+        }, 2000);
+    };
+
+    const handleRestart = () => {
+        setPowerState('restarting');
+        setPowerMessage('Restarting...');
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    };
+
 
   const openApp = useCallback((appId: string) => {
     const gameApp = gameApps.find(g => g.id === appId);
@@ -806,6 +837,14 @@ export default function Desktop() {
       return !initialGameApps.some(g => g.id === app.id) && app.id !== 'game-manager';
   });
 
+   if (powerState === 'shutting_down' || powerState === 'restarting' || powerState === 'off') {
+        return (
+            <div className="w-full h-full bg-black flex items-center justify-center">
+                <p className="text-foreground font-code text-2xl animate-pulse">{powerMessage}</p>
+            </div>
+        );
+    }
+
   return (
     <div className="relative w-full h-full p-4 overflow-hidden">
        {isAuthenticated && (
@@ -819,6 +858,32 @@ export default function Desktop() {
            </Button>
          </div>
        )}
+
+        <div className="absolute bottom-4 right-4 z-[100]">
+            <Button variant="ghost" size="icon" onClick={() => setPowerState('confirming')}>
+                <Power className="text-destructive" />
+            </Button>
+        </div>
+        
+        <AlertDialog open={powerState === 'confirming'} onOpenChange={(open) => !open && setPowerState('running')}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to proceed?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Any unsaved changes will be lost.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setPowerState('running')}>Cancel</AlertDialogCancel>
+                    <Button variant="secondary" onClick={handleRestart}><RefreshCcw /> Restart</Button>
+                    <AlertDialogAction asChild>
+                         <Button variant="destructive" onClick={handleShutdown}><Power /> Shut Down</Button>
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+
       <div className="relative w-full h-full">
         {desktopApps.map((app, index) => (
           <DesktopIcon
