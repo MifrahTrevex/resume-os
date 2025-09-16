@@ -20,7 +20,7 @@ const InterpretTerminalCommandOutputSchema = z.object({
   action: z
     .string()
     .describe(
-      'The action to be taken by the application based on the command.  Possible values include: OPEN_RESUME, SHOW_PROJECTS, OPEN_LINK, INVALID'
+      'The action to be taken by the application based on the command.  Possible values include: OPEN_RESUME, SHOW_PROJECTS, OPEN_LINK, SHOW_HELP, INVALID'
     ),
   link: z.string().optional().describe('The link to open if the action is OPEN_LINK'),
   reason: z.string().describe('The reasoning behind the action taken.'),
@@ -41,6 +41,7 @@ Valid actions are:
 - OPEN_RESUME: to open the resume PDF. Use this action if the user asks to see the resume, CV or work experience.
 - SHOW_PROJECTS: to display the portfolio of projects. Use this action if the user asks to see projects or portfolio.
 - OPEN_LINK: to open an external link, such as LinkedIn or Github. The specific link must be determined and included in the output.
+- SHOW_HELP: to display the help message with all available commands. Use this action if the user types 'help'.
 - INVALID: if the command is not recognized or is not related to the CV content or navigation.
 
 Given the following command, determine the appropriate action and provide a reason for your choice.

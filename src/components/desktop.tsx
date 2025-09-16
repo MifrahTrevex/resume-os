@@ -181,6 +181,19 @@ function Terminal({ openApp, cvContent, initialCommand }: { openApp: (appId: str
                   window.open(result.link, '_blank');
               }
               break;
+          case 'SHOW_HELP':
+                setLines(prev => [
+                    ...prev,
+                    { type: 'output', content: 'Available Commands:' },
+                    { type: 'output', content: '  - "open resume"      => Opens the resume file.' },
+                    { type: 'output', content: '  - "show projects"      => Opens the projects folder.' },
+                    { type: 'output', content: '  - "open github"        => Opens GitHub profile in a new tab.' },
+                    { type: 'output', content: '  - "open linkedin"      => Opens LinkedIn profile in a new tab.' },
+                    { type: 'output', content: '  - "play [game_name]" => Starts a game.' },
+                    { type: 'output', content: '      Games: firewall-defender, tic-tac-toe, guess-the-number, netrun' },
+                    { type: 'output', content: '  - "help"               => Shows this help message.' },
+                ]);
+                break;
           case 'INVALID':
               // The reason is already displayed
               break;
