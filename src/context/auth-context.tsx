@@ -42,7 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       return () => unsubscribe();
     } else {
-        // Handle case where Firebase fails to initialize
         console.error("Firebase app initialization failed.");
         setLoading(false);
     }
