@@ -17,7 +17,17 @@ let app: FirebaseApp | null = null;
 function initializeFirebaseApp() {
     if (typeof window !== "undefined") {
         if (!getApps().length) {
-            app = initializeApp(firebaseConfig);
+            // Check if all required environment variables are present
+            if (
+                firebaseConfig.apiKey &&
+                firebaseConfig.authDomain &&
+                firebaseConfig.projectId
+            ) {
+                app = initializeApp(firebaseConfig);
+            } else {
+                console.error("Firebase config environment variables are missing.");
+                app = null;
+            }
         } else {
             app = getApp();
         }
