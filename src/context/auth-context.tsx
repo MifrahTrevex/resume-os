@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, User, Auth } from 'firebase/auth';
-import { app } from '@/lib/firebase-config';
+import { initializeFirebaseApp } from '@/lib/firebase-config';
 import { toast } from '@/hooks/use-toast';
 
 
@@ -28,6 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   
   useEffect(() => {
+    const app = initializeFirebaseApp();
     if (app) {
       const authInstance = getAuth(app);
       setAuth(authInstance);

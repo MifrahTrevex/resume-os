@@ -12,16 +12,17 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-function getFirebaseApp() {
-    if (typeof window === "undefined") {
-        return null;
-    }
+let app: FirebaseApp | null = null;
 
-    if (!getApps().length) {
-        return initializeApp(firebaseConfig);
-    } else {
-        return getApp();
+function initializeFirebaseApp() {
+    if (typeof window !== "undefined") {
+        if (!getApps().length) {
+            app = initializeApp(firebaseConfig);
+        } else {
+            app = getApp();
+        }
     }
+    return app;
 }
 
-export const app = getFirebaseApp();
+export { initializeFirebaseApp };
